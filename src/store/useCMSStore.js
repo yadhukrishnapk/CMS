@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { createDemoData, hasDemoData } from '../utils/demoData';
+import { createDemoData, hasDemoData, extractDataFromResponse } from '../utils/demoData';
 
 const useCMSStore = create(
   persist(
@@ -11,19 +11,24 @@ const useCMSStore = create(
       widgets: {},
       media: [],
       links: [],
+      users: [],
+      settings: {},
       selectedWidgetId: null,
       currentPageId: null,
 
       // Initialize demo data if no data exists
       initializeDemoData: () => {
         if (!hasDemoData()) {
-          const demoData = createDemoData();
+          const apiResponse = createDemoData();
+          const extractedData = extractDataFromResponse(apiResponse);
           set({
-            pages: demoData.pages,
-            widgets: demoData.widgets,
-            media: demoData.media,
-            links: demoData.links,
-            currentPageId: demoData.pages[0]?.id || null,
+            pages: extractedData.pages,
+            widgets: extractedData.widgets,
+            media: extractedData.media,
+            links: extractedData.links,
+            users: extractedData.users,
+            settings: extractedData.settings,
+            currentPageId: extractedData.pages[0]?.id || null,
           });
         }
       },
@@ -32,7 +37,31 @@ const useCMSStore = create(
       createPage: (title = 'New Page') => {
         const id = uuidv4();
         const slug = title.toLowerCase().replace(/\s+/g, '-');
-        const newPage = { id, title, slug, widgets: [] };
+        const newPage = { 
+          id, 
+          title, 
+          slug, 
+          status: 'draft',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          author: {
+            id: 'user-1',
+            name: 'Current User',
+            email: 'user@example.com'
+          },
+          meta: {
+            description: '',
+            keywords: [],
+            seo_title: title
+          },
+          widgets: [],
+          settings: {
+            layout: 'default',
+            theme: 'light',
+            show_header: true,
+            show_footer: true
+          }
+        };
         set((state) => ({
           pages: [...state.pages, newPage],
           currentPageId: id,
@@ -43,7 +72,11 @@ const useCMSStore = create(
       updatePage: (id, updates) => {
         set((state) => ({
           pages: state.pages.map((page) =>
-            page.id === id ? { ...page, ...updates } : page
+            page.id === id ? { 
+              ...page, 
+              ...updates, 
+              updated_at: new Date().toISOString() 
+            } : page
           ),
         }));
       },
@@ -73,8 +106,19 @@ const useCMSStore = create(
         const newWidget = {
           id,
           type,
+          page_id: pageId,
+          order: 0,
           props: getDefaultWidgetProps(type),
-          layout: { x: 0, y: 0, width: 'auto', height: 'auto' },
+          layout: { 
+            x: 0, 
+            y: 0, 
+            width: 'auto', 
+            height: 'auto',
+            margin: { top: 0, right: 0, bottom: 16, left: 0 },
+            padding: { top: 0, right: 0, bottom: 0, left: 0 }
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
 
         set((state) => ({
@@ -94,7 +138,11 @@ const useCMSStore = create(
         set((state) => ({
           widgets: {
             ...state.widgets,
-            [id]: { ...state.widgets[id], ...updates },
+            [id]: { 
+              ...state.widgets[id], 
+              ...updates,
+              updated_at: new Date().toISOString()
+            },
           },
         }));
       },
@@ -114,6 +162,34 @@ const useCMSStore = create(
         });
       },
 
+      duplicateWidget: (id, pageId) => {
+        const state = get();
+        const originalWidget = state.widgets[id];
+        if (!originalWidget) return null;
+
+        const newId = uuidv4();
+        const duplicatedWidget = {
+          ...originalWidget,
+          id: newId,
+          page_id: pageId,
+          props: { ...originalWidget.props },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        set((state) => ({
+          widgets: { ...state.widgets, [newId]: duplicatedWidget },
+          pages: state.pages.map((page) =>
+            page.id === pageId
+              ? { ...page, widgets: [...page.widgets, newId] }
+              : page
+          ),
+          selectedWidgetId: newId,
+        }));
+
+        return newId;
+      },
+
       reorderWidgets: (pageId, newOrder) => {
         set((state) => ({
           pages: state.pages.map((page) =>
@@ -128,10 +204,23 @@ const useCMSStore = create(
         const url = URL.createObjectURL(file);
         const newMedia = {
           id,
-          name: file.name,
+          filename: file.name,
+          original_name: file.name,
           url,
+          thumbnail_url: url,
+          mime_type: file.type,
           size: file.size,
-          type: file.type,
+          width: null,
+          height: null,
+          alt_text: '',
+          caption: '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          uploaded_by: {
+            id: 'user-1',
+            name: 'Current User'
+          },
+          tags: []
         };
 
         set((state) => ({
@@ -156,7 +245,21 @@ const useCMSStore = create(
       // Links actions
       addLink: (title, url, target = '_self') => {
         const id = uuidv4();
-        const newLink = { id, title, url, target };
+        const newLink = { 
+          id, 
+          title, 
+          url, 
+          target,
+          rel: target === '_blank' ? 'noopener noreferrer' : '',
+          type: 'external',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: {
+            id: 'user-1',
+            name: 'Current User'
+          }
+        };
         set((state) => ({
           links: [...state.links, newLink],
         }));
@@ -166,7 +269,11 @@ const useCMSStore = create(
       updateLink: (id, updates) => {
         set((state) => ({
           links: state.links.map((link) =>
-            link.id === id ? { ...link, ...updates } : link
+            link.id === id ? { 
+              ...link, 
+              ...updates,
+              updated_at: new Date().toISOString()
+            } : link
           ),
         }));
       },
@@ -190,19 +297,30 @@ const useCMSStore = create(
       exportData: () => {
         const state = get();
         return {
-          pages: state.pages,
-          widgets: state.widgets,
-          media: state.media,
-          links: state.links,
+          success: true,
+          message: "Data exported successfully",
+          timestamp: new Date().toISOString(),
+          version: "1.0.0",
+          data: {
+            pages: state.pages,
+            widgets: state.widgets,
+            media: state.media,
+            links: state.links,
+            users: state.users,
+            settings: state.settings
+          }
         };
       },
 
-      importData: (data) => {
+      importData: (apiResponse) => {
+        const extractedData = extractDataFromResponse(apiResponse);
         set({
-          pages: data.pages || [],
-          widgets: data.widgets || {},
-          media: data.media || [],
-          links: data.links || [],
+          pages: extractedData.pages,
+          widgets: extractedData.widgets,
+          media: extractedData.media,
+          links: extractedData.links,
+          users: extractedData.users,
+          settings: extractedData.settings,
           selectedWidgetId: null,
           currentPageId: null,
         });
@@ -215,6 +333,8 @@ const useCMSStore = create(
         widgets: state.widgets,
         media: state.media,
         links: state.links,
+        users: state.users,
+        settings: state.settings,
       }),
     }
   )
@@ -224,11 +344,57 @@ const useCMSStore = create(
 const getDefaultWidgetProps = (type) => {
   switch (type) {
     case 'richText':
-      return { content: '<p>Click to edit text...</p>' };
+      return { 
+        content: '<p>Click to edit text...</p>',
+        text_align: 'left',
+        font_size: 'base',
+        line_height: 'relaxed'
+      };
     case 'image':
-      return { src: '', alt: '', width: '100%', height: 'auto' };
+      return { 
+        src: '', 
+        alt: '', 
+        width: '100%', 
+        height: 'auto',
+        border_radius: 'none',
+        object_fit: 'cover'
+      };
     case 'button':
-      return { label: 'Click me', link: '', target: '_self' };
+      return { 
+        label: 'Click me', 
+        link: '', 
+        target: '_self',
+        variant: 'primary',
+        size: 'md',
+        color: '#3b82f6',
+        background_color: '#3b82f6',
+        text_color: '#ffffff',
+        border_radius: 'md',
+        padding: { top: 12, right: 24, bottom: 12, left: 24 }
+      };
+    case 'heading':
+      return { 
+        level: 2, 
+        text: 'Heading', 
+        alignment: 'left',
+        color: '#1f2937',
+        font_size: '2xl',
+        font_weight: 'bold'
+      };
+    case 'spacer':
+      return { 
+        height: 40,
+        background_color: 'transparent',
+        border_style: 'none'
+      };
+    case 'divider':
+      return { 
+        style: 'solid', 
+        thickness: 1, 
+        color: '#e5e7eb',
+        width: '100%',
+        opacity: 1
+      };
     default:
       return {};
   }

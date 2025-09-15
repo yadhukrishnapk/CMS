@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useCMSStore from '../store/useCMSStore';
-import WidgetContainer from '../components/widgets/WidgetContainer';
+import AdvancedWidgetContainer from '../components/widgets/AdvancedWidgetContainer';
 
 const Preview = () => {
   const { pageId } = useParams();
@@ -70,7 +70,7 @@ const Preview = () => {
           ) : (
             <div className="space-y-6">
               {pageWidgets.map((widget) => (
-                <WidgetContainer
+                <AdvancedWidgetContainer
                   key={widget.id}
                   widget={widget}
                   isEditing={false}

@@ -2,20 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* React Quill styles */
-@import 'react-quill/dist/quill.snow.css';
-
 /* Custom styles */
-.ql-editor {
-  min-height: 100px;
-}
-
 .widget-container {
-  @apply border-2 border-transparent hover:border-blue-300 transition-colors;
+  @apply border-2 border-transparent hover:border-blue-300 transition-colors relative;
 }
 
 .widget-container.selected {
-  @apply border-blue-500;
+  @apply border-blue-500 bg-blue-50;
 }
 
 .widget-container:hover .widget-actions {
@@ -23,5 +16,91 @@
 }
 
 .widget-actions {
-  @apply opacity-0 transition-opacity absolute top-2 right-2 flex gap-1;
+  @apply opacity-0 transition-opacity absolute top-2 right-2 flex gap-1 z-10;
+}
+
+.widget-overlay {
+  @apply absolute inset-0 bg-blue-500 bg-opacity-10 border-2 border-blue-500 border-dashed pointer-events-none;
+}
+
+.inline-edit {
+  @apply border-2 border-dashed border-transparent hover:border-blue-300 transition-colors;
+}
+
+.inline-edit.editing {
+  @apply border-blue-500 bg-blue-50;
+}
+
+.drop-zone {
+  @apply border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors;
+}
+
+.drop-zone.active {
+  @apply border-blue-500 bg-blue-50;
+}
+
+.floating-toolbar {
+  @apply fixed top-4 right-4 bg-white shadow-lg rounded-lg border border-gray-200 p-2 flex gap-2 z-50;
+}
+
+.canvas-container {
+  @apply min-h-screen bg-gray-50 p-8;
+}
+
+.page-canvas {
+  @apply max-w-4xl mx-auto bg-white shadow-lg rounded-lg min-h-96;
+}
+
+/* Rich text editor styles */
+[contenteditable] {
+  outline: none;
+}
+
+[contenteditable]:focus {
+  outline: none;
+}
+
+/* Prose styles for rich text display */
+.prose {
+  @apply text-gray-800 leading-relaxed;
+}
+
+.prose h1 {
+  @apply text-3xl font-bold mb-4;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold mb-3;
+}
+
+.prose h3 {
+  @apply text-xl font-bold mb-2;
+}
+
+.prose p {
+  @apply mb-4;
+}
+
+.prose ul {
+  @apply list-disc list-inside mb-4;
+}
+
+.prose ol {
+  @apply list-decimal list-inside mb-4;
+}
+
+.prose li {
+  @apply mb-1;
+}
+
+.prose strong {
+  @apply font-bold;
+}
+
+.prose em {
+  @apply italic;
+}
+
+.prose u {
+  @apply underline;
 }

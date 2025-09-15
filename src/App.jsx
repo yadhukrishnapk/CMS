@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import PagesList from './pages/PagesList';
-import PageEditor from './pages/PageEditor';
+import EnhancedPageEditor from './pages/EnhancedPageEditor';
 import MediaLibrary from './pages/MediaLibrary';
 import LinkManager from './pages/LinkManager';
 import Preview from './pages/Preview';
@@ -23,7 +23,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<PagesList />} />
             <Route path="pages" element={<PagesList />} />
-            <Route path="editor/:pageId" element={<PageEditor />} />
+            <Route path="editor/:pageId" element={<EnhancedPageEditor />} />
             <Route path="media" element={<MediaLibrary />} />
             <Route path="links" element={<LinkManager />} />
           </Route>

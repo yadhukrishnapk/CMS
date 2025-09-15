@@ -3,8 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import useCMSStore from "../store/useCMSStore";
 import FormattingPanel from "../assets/FormattingPanel";
 
-
-
 // Enhanced Rich Text Widget with formatting support
 // Enhanced Rich Text Widget with formatting support
 const InlineRichTextWidget = ({

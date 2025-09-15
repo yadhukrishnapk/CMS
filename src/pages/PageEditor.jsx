@@ -68,7 +68,7 @@ const PageEditor = () => {
       <WidgetPalette />
       
       <div className="flex-1 flex">
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 hey">
           <div className="mb-4">
             <h2 className="text-xl font-semibold text-gray-800 mb-2">
               {currentPage.title}

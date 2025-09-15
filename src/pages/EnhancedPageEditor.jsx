@@ -190,8 +190,8 @@ const EnhancedPageEditor = () => {
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 flex">
-          <div className="flex-1 p-6">
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 overflow-auto p-6">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -200,8 +200,8 @@ const EnhancedPageEditor = () => {
               onDragEnd={handleDragEnd}
               onDragCancel={handleDragCancel}
             >
-              <div className="canvas-container">
-                <div className="page-canvas">
+              <div className="canvas-container min-h-full">
+                <div className="page-canvas min-h-full">
                   {pageWidgets.length === 0 ? (
                     <DropZone onDrop={() => {}} isActive={isDragOver} />
                   ) : (
@@ -209,7 +209,7 @@ const EnhancedPageEditor = () => {
                       items={currentPage.widgets}
                       strategy={verticalListSortingStrategy}
                     >
-                      <div className="p-6 space-y-4">
+                      <div className="p-6 space-y-4 min-h-full">
                         {pageWidgets.map((widget, index) => (
                           <AdvancedWidgetContainer
                             key={widget.id}

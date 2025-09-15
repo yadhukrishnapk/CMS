@@ -363,12 +363,16 @@ const InlineImageWidget = ({
 };
 
 // Enhanced Inline-editable widget container
-const InlineEditableWidget = ({ widget, selectedWidgetId, onSelectWidget }) => {
+const InlineEditableWidget = ({
+  widget,
+  selectedWidgetId,
+  onSelectWidget,
+  contentEditableRef,
+}) => {
   const { updateWidget } = useCMSStore();
   const [editingWidgetId, setEditingWidgetId] = useState(null);
   const [editingWidgetType, setEditingWidgetType] = useState(null);
   const [savedRange, setSavedRange] = useState(null);
-  const contentEditableRef = useRef(null);
 
   const isInlineEditing = editingWidgetId === widget.id;
   const isSelected = selectedWidgetId === widget.id;
@@ -479,13 +483,32 @@ const Preview = () => {
     }
   }, [editingWidgetId, editingWidgetType]);
 
-  const handleFormat = (cmd) => {
+  const handleFormat = (cmd, value = null) => {
     if (contentEditableRef.current && savedRange) {
       restoreSelection(savedRange);
-      document.execCommand(cmd, false, null);
+
+      // Handle different formatting commands
+      switch (cmd) {
+        case "color":
+          document.execCommand("foreColor", false, value);
+          break;
+        case "backgroundColor":
+          document.execCommand("hiliteColor", false, value);
+          break;
+        case "removeFormat":
+          document.execCommand("removeFormat", false, null);
+          break;
+        default:
+          document.execCommand(cmd, false, value);
+          break;
+      }
+
       contentEditableRef.current.focus();
+      // Save the new selection after formatting
+      setSavedRange(saveSelection());
     }
   };
+
   const handleColor = (color) => {
     if (contentEditableRef.current && savedRange) {
       restoreSelection(savedRange);
@@ -578,6 +601,7 @@ const Preview = () => {
                     widget={widget}
                     selectedWidgetId={selectedWidgetId}
                     onSelectWidget={setSelectedWidgetId}
+                    contentEditableRef={contentEditableRef}
                   />
                 ))}
               </div>
@@ -589,7 +613,7 @@ const Preview = () => {
       {/* Formatting Panel */}
       <FormattingPanel
         selectedWidget={selectedWidgetId ? widgets[selectedWidgetId] : null}
-        onFormatText={handleFormat}
+        onFormatText={handleFormat} // Pass the unified handler
         isVisible={true}
       />
     </div>

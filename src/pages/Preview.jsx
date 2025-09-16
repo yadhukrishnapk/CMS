@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import useCMSStore from "../store/useCMSStore";
 import FormattingPanel from "../assets/FormattingPanel";
+import ImageUploadModal from "../assets/ImageUploadModal";
 
 // Available widget types configuration
 const availableWidgetTypes = [
@@ -146,8 +147,9 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
 
 // === Widget Renderer ===
 // Enhanced WidgetRenderer component with better placeholders
-const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect }) => {
+const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect , onUpdate }) => {
   const ref = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Function to get current cursor position
   const getCursorPosition = (element) => {
@@ -395,38 +397,61 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect 
         </div>
       );
 
-    case 'image':
-      const hasImage = widget.props.src && widget.props.src.trim() !== '';
-      
-      return (
-        <div className={`mb-8 relative ${isEditable ? 'cursor-pointer' : ''}`} onClick={() => isEditable && onSelect?.(widget.id)}>
-          {hasImage ? (
-            <img
-              src={widget.props.src}
-              alt={widget.props.alt}
-              className="max-w-full h-auto shadow-lg"
-              style={{
-                width: widget.props.width,
-                height: widget.props.height,
-                objectFit: widget.props.object_fit,
-                borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
-                             widget.props.border_radius === 'lg' ? '1rem' : 
-                             widget.props.border_radius === 'sm' ? '0.5rem' : '0'
+      case 'image':
+        const hasImage = widget.props.src && widget.props.src.trim() !== '';
+        
+        return (
+          <>
+            <div 
+              className={`mb-8 relative ${isEditable ? 'cursor-pointer' : ''}`} 
+              onClick={(e) => {
+                if (isEditable) {
+                  e.preventDefault();
+                  setIsModalOpen(true);
+                  onSelect?.(widget.id);
+                }
               }}
-            />
-          ) : isEditable ? (
-            <div className="w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p className="text-sm">Click to add an image</p>
-              </div>
+            >
+              {hasImage ? (
+                <img
+                  src={widget.props.src}
+                  alt={widget.props.alt}
+                  className="max-w-full h-auto shadow-lg"
+                  style={{
+                    width: widget.props.width,
+                    height: widget.props.height,
+                    objectFit: widget.props.object_fit,
+                    borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
+                                widget.props.border_radius === 'lg' ? '1rem' : 
+                                widget.props.border_radius === 'sm' ? '0.5rem' : '0'
+                  }}
+                />
+              ) : isEditable ? (
+                <div className="w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm">Click to add an image</p>
+                  </div>
+                </div>
+              ) : null}
+              {isEditable && hasImage && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20 rounded-lg">
+                  <span className="text-white text-sm font-medium bg-gray-800/80 px-3 py-1 rounded">
+                    Click to replace image
+                  </span>
+                </div>
+              )}
             </div>
-          ) : null}
-        </div>
-      );
-
+            <ImageUploadModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              widgetId={widget.id}
+              onUpdate={onUpdate}
+            />
+          </>
+        );
     default:
       return null;
   }
@@ -569,6 +594,7 @@ const Preview = () => {
                         addWidget={addWidget}
                         deleteWidget={deleteWidget}
                         onSelect={selectWidget}
+                        onUpdate={updateWidget}
                       />
                     ))}
                   </div>

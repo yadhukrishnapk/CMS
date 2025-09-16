@@ -33,7 +33,7 @@ const WidgetTypeSelector = ({ onSelect, currentType }) => {
 };
 
 // === Widget Block ===
-const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget }) => {
+const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget, onSelect }) => {
   const blockRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const { changeWidgetType } = useCMSStore();
@@ -81,6 +81,7 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
         widget={widget}
         isEditable={isEditable}
         onContentChange={onContentChange}
+        onSelect={onSelect}
       />
 
       {/* Edit Mode Controls */}
@@ -145,7 +146,7 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
 
 // === Widget Renderer ===
 // Enhanced WidgetRenderer component with better placeholders
-const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
+const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect }) => {
   const ref = useRef(null);
 
   // Function to get current cursor position
@@ -222,6 +223,8 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
         element.innerHTML = '';
       }
     }
+    // Select the widget
+    onSelect?.(widget.id);
   };
 
   const handleBlur = (e) => {
@@ -298,39 +301,56 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
         />
       );
 
-    case 'button':
-      return (
-        <div className={`
-          ${widget.props.alignment === 'center' ? 'text-center' : 
-            widget.props.alignment === 'right' ? 'text-right' : 'text-left'}
-          mb-8
-        `.trim()}>
-          <a
-            href={widget.props.link || '#'}
-            target={widget.props.target}
+      case 'button':
+        return (
+          <div 
             className={`
-              inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300
-              hover:scale-105 hover:shadow-2xl active:scale-95 transform
-              ${widget.props.size === 'sm' ? 'px-6 py-3 text-sm' : 
-                widget.props.size === 'lg' ? 'px-10 py-5 text-lg' : 'px-8 py-4 text-base'}
-              shadow-lg hover:shadow-xl
-              ${(!widget.props.label || widget.props.label.trim() === '') ? 'opacity-75' : ''}
+              ${widget.props.alignment === 'center' ? 'text-center' : 
+                widget.props.alignment === 'right' ? 'text-right' : 'text-left'}
+              mb-8 cursor-pointer
             `.trim()}
-            style={{
-              backgroundColor: widget.props.background_color,
-              color: widget.props.text_color,
-              borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
-                           widget.props.border_radius === 'lg' ? '1rem' : 
-                           widget.props.border_radius === 'sm' ? '0.5rem' : '0.75rem'
-            }}
+            onClick={() => onSelect?.(widget.id)}
           >
-            {widget.props.label || 'Button Text'}
-            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-      );
+            <div className="relative group">
+              <a
+                href={widget.props.link || '#'}
+                target={widget.props.target}
+                onClick={(e) => isEditable && e.preventDefault()}
+                onDoubleClick={(e) => {
+                  if (isEditable && widget.props.link) {
+                    e.preventDefault();
+                    window.open(widget.props.link, widget.props.target || '_self');
+                  }
+                }}
+                className={`
+                  inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300
+                  hover:scale-105 hover:shadow-2xl active:scale-95 transform
+                  ${widget.props.size === 'sm' ? 'px-6 py-3 text-sm' : 
+                    widget.props.size === 'lg' ? 'px-10 py-5 text-lg' : 'px-8 py-4 text-base'}
+                  shadow-lg hover:shadow-xl
+                  ${(!widget.props.label || widget.props.label.trim() === '') ? 'opacity-75' : ''}
+                `.trim()}
+                style={{
+                  backgroundColor: widget.props.background_color,
+                  color: widget.props.text_color,
+                  borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
+                               widget.props.border_radius === 'lg' ? '1rem' : 
+                               widget.props.border_radius === 'sm' ? '0.5rem' : '0.75rem'
+                }}
+              >
+                {widget.props.label || 'Button Text'}
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+              {isEditable && (
+                <div className="absolute invisible group-hover:visible z-50 bg-gray-800 text-white text-xs rounded-lg py-1 px-2 -top-8 left-1/4 transform -translate-x-1/2 whitespace-nowrap">
+                  Double click to see button functionality
+                </div>
+              )}
+            </div>
+          </div>
+        );
 
     case 'spacer':
       return (
@@ -339,7 +359,8 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
             height: `${widget.props.height}px`,
             backgroundColor: widget.props.background_color,
           }}
-          className={`w-full ${isEditable ? 'relative' : ''}`}
+          className={`w-full ${isEditable ? 'relative cursor-pointer' : ''}`}
+          onClick={() => isEditable && onSelect?.(widget.id)}
         >
           {isEditable && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -353,7 +374,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
 
     case 'divider':
       return (
-        <div className="my-8 flex justify-center relative">
+        <div className={`my-8 flex justify-center relative ${isEditable ? 'cursor-pointer' : ''}`} onClick={() => isEditable && onSelect?.(widget.id)}>
           <hr
             style={{
               borderStyle: widget.props.style,
@@ -378,7 +399,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
       const hasImage = widget.props.src && widget.props.src.trim() !== '';
       
       return (
-        <div className="mb-8 relative">
+        <div className={`mb-8 relative ${isEditable ? 'cursor-pointer' : ''}`} onClick={() => isEditable && onSelect?.(widget.id)}>
           {hasImage ? (
             <img
               src={widget.props.src}
@@ -413,7 +434,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
 
 // === Main Preview Component ===
 const Preview = () => {
-  const { widgets, pages, currentPageId, updateWidget, initializeDemoData, deleteWidget, addWidget } = useCMSStore();
+  const { widgets, pages, currentPageId, updateWidget, initializeDemoData, deleteWidget, addWidget, selectWidget } = useCMSStore();
   const editorRef = useRef(null);
   const savedRangeRef = useRef(null);
   const [isFormattingPanelVisible, setIsFormattingPanelVisible] = useState(true);
@@ -505,11 +526,11 @@ const Preview = () => {
         </div>
       </header>
 
-      <div className="pt-24 pb-12">
-        <div className="max-w-6xl mx-auto flex gap-8 px-4">
+      <div className="pt-24 pb-12 bg-red-100">
+        <div className="max-w-6xl mx-auto flex gap-8 px-4 ">
           {/* Main Content Area */}
           <main className={`${(!isPreviewMode && isFormattingPanelVisible) ? 'flex-1' : 'w-full max-w-4xl mx-auto'} transition-all duration-300`}>
-            <div className="bg-white shadow-2xl rounded-3xl border border-gray-100 overflow-hidden">
+            <div className="bg-white shadow-2xl rounded-3xl border border-gray-100 overflow-hidden -ml-48">
               {/* Page Header */}
               <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentPage.title}</h2>
@@ -547,6 +568,7 @@ const Preview = () => {
                         onContentChange={handleWidgetContentChange}
                         addWidget={addWidget}
                         deleteWidget={deleteWidget}
+                        onSelect={selectWidget}
                       />
                     ))}
                   </div>
@@ -582,7 +604,7 @@ const Preview = () => {
 
           {/* Floating Formatting Panel - only show in editor mode */}
           {!isPreviewMode && isFormattingPanelVisible && (
-            <aside className="w-80 sticky top-28 h-fit">
+            <aside className="w-80 sticky top-28 h-fit -mr-48">
               <FormattingPanel savedRangeRef={savedRangeRef} editorRef={editorRef} />
               
               {/* Enhanced Page Stats */}

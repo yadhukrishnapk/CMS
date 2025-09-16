@@ -1,7 +1,105 @@
 import React, { useState, useEffect } from "react";
+import useCMSStore from "../store/useCMSStore";
+
+// Button Formatting Panel Component
+const ButtonFormattingPanel = ({ widgetId }) => {
+  const { widgets, updateWidget } = useCMSStore();
+  const widget = widgets[widgetId];
+
+  if (!widget || widget.type !== 'button') return null;
+
+  const { props } = widget;
+
+  const handleUpdate = (updates) => {
+    updateWidget(widgetId, { props: { ...props, ...updates } });
+  };
+
+  return (
+    <>
+      <h3 className="font-bold text-gray-800 mb-4 flex items-center text-lg">
+        <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-7.303a6 6 0 0112 0v1h-6a6 6 0 00-9 5.197" />
+          </svg>
+        </div>
+        Button Settings
+      </h3>
+
+      {/* Label */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
+        <input
+          type="text"
+          value={props.label || ''}
+          onChange={(e) => handleUpdate({ label: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Enter button text"
+        />
+      </div>
+
+      {/* Link */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Link URL</label>
+        <input
+          type="url"
+          value={props.link || ''}
+          onChange={(e) => handleUpdate({ link: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="https://example.com"
+        />
+      </div>
+
+      {/* Target */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Open in new tab</label>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={props.target === '_blank'}
+            onChange={(e) => handleUpdate({ target: e.target.checked ? '_blank' : '_self' })}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          <span className="ml-3 text-sm font-medium text-gray-900">New tab</span>
+        </label>
+      </div>
+
+      {/* Variant */}
+      {/* <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Variant</label>
+        <select
+          value={props.variant || 'primary'}
+          onChange={(e) => handleUpdate({ variant: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="primary">Primary</option>
+          <option value="secondary">Secondary</option>
+          <option value="outline">Outline</option>
+        </select>
+      </div> */}
+
+      {/* Size */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+        <select
+          value={props.size || 'md'}
+          onChange={(e) => handleUpdate({ size: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="sm">Small</option>
+          <option value="md">Medium</option>
+          <option value="lg">Large</option>
+        </select>
+      </div>
+    </>
+  );
+};
 
 const FormattingPanel = ({ savedRangeRef, editorRef }) => {
   const [selectedText, setSelectedText] = useState("");
+  const { widgets, selectedWidgetId } = useCMSStore();
+  const selectedWidget = selectedWidgetId ? widgets[selectedWidgetId] : null;
+  const isButtonSelected = selectedWidget?.type === 'button';
 
   // Save current selection
   const saveSelection = () => {
@@ -70,10 +168,14 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
     "#000000", "#374151", "#6B7280", "#DC2626",
     "#059669", "#2563EB", "#7C3AED", "#FFFFFF"
   ];
-  const bgColors = [
-    "transparent", "#FEF3C7", "#DBEAFE",
-    "#D1FAE5", "#FCE7F3", "#FEE2E2"
-  ];
+
+  if (isButtonSelected) {
+    return (
+      <div className="bg-white shadow-xl rounded-2xl p-6 w-80 border border-gray-100 backdrop-blur-sm bg-white/95">
+        <ButtonFormattingPanel widgetId={selectedWidgetId} />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white shadow-xl rounded-2xl p-6 w-80 border border-gray-100 backdrop-blur-sm bg-white/95">
@@ -138,27 +240,6 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
           ))}
         </div>
       </div>
-
-      {/* Background Color */}
-      {/* <div className="mb-6">
-        <p className="text-sm font-medium text-gray-600 mb-3">Background Highlight</p>
-        <div className="grid grid-cols-6 gap-2">
-          {bgColors.map((color) => (
-            <button
-              key={color}
-              onClick={() => applyFormat("hiliteColor", color)}
-              className="w-10 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-              style={{
-                background:
-                  color === "transparent"
-                    ? "repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%) 50% / 8px 8px"
-                    : color,
-              }}
-              title={color === "transparent" ? "Remove highlight" : color}
-            />
-          ))}
-        </div>
-      </div> */}
 
       <button
         onClick={() => applyFormat("removeFormat")}

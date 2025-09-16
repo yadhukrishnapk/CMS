@@ -23,11 +23,11 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<PagesList />} />
             <Route path="pages" element={<PagesList />} />
-            <Route path="editor/:pageId" element={<EnhancedPageEditor />} />
             <Route path="media" element={<MediaLibrary />} />
             <Route path="links" element={<LinkManager />} />
+            <Route path="/preview/:pageId" element={<Preview />} />
           </Route>
-          <Route path="/preview/:pageId" element={<Preview />} />
+          <Route path="editor/:pageId" element={<Preview />} />
         </Routes>
       </div>
     </Router>

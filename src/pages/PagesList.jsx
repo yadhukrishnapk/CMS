@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import useCMSStore from '../store/useCMSStore';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useCMSStore from "../store/useCMSStore";
 
 const PagesList = () => {
   const navigate = useNavigate();
   const { pages, createPage, deletePage, updatePage } = useCMSStore();
   const [editingId, setEditingId] = useState(null);
-  const [editTitle, setEditTitle] = useState('');
+  const [editTitle, setEditTitle] = useState("");
 
   const handleCreatePage = () => {
     const pageId = createPage();
@@ -21,16 +21,16 @@ const PagesList = () => {
   const handleSaveEdit = (pageId) => {
     updatePage(pageId, { title: editTitle });
     setEditingId(null);
-    setEditTitle('');
+    setEditTitle("");
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditTitle('');
+    setEditTitle("");
   };
 
   const handleDeletePage = (pageId) => {
-    if (confirm('Are you sure you want to delete this page?')) {
+    if (confirm("Are you sure you want to delete this page?")) {
       deletePage(pageId);
     }
   };
@@ -44,8 +44,8 @@ const PagesList = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Pages</h1>
         <button
-          onClick={handleCreatePage}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          disabled
+          className="px-4 py-2 rounded bg-blue-600 text-white opacity-50 cursor-not-allowed"
         >
           Create New Page
         </button>
@@ -54,8 +54,12 @@ const PagesList = () => {
       {pages.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📄</div>
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No pages yet</h3>
-          <p className="text-gray-500 mb-6">Create your first page to get started</p>
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            No pages yet
+          </h3>
+          <p className="text-gray-500 mb-6">
+            Create your first page to get started
+          </p>
           <button
             onClick={handleCreatePage}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -66,7 +70,10 @@ const PagesList = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pages.map((page) => (
-            <div key={page.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+            <div
+              key={page.id}
+              className="bg-white rounded-lg shadow-md border border-gray-200 p-6"
+            >
               <div className="flex items-start justify-between mb-4">
                 {editingId === page.id ? (
                   <input
@@ -76,14 +83,16 @@ const PagesList = () => {
                     className="flex-1 text-lg font-semibold text-gray-800 border border-gray-300 rounded px-2 py-1"
                     autoFocus
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveEdit(page.id);
-                      if (e.key === 'Escape') handleCancelEdit();
+                      if (e.key === "Enter") handleSaveEdit(page.id);
+                      if (e.key === "Escape") handleCancelEdit();
                     }}
                   />
                 ) : (
-                  <h3 className="text-lg font-semibold text-gray-800">{page.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {page.title}
+                  </h3>
                 )}
-                
+
                 <div className="flex space-x-1">
                   {editingId === page.id ? (
                     <>
@@ -113,7 +122,8 @@ const PagesList = () => {
                       </button>
                       <button
                         onClick={() => handleDeletePage(page.id)}
-                        className="p-1 text-red-600 hover:bg-red-100 rounded"
+                        disabled
+                        className="p-1 text-red-600 rounded opacity-50 cursor-not-allowed"
                         title="Delete page"
                       >
                         🗑️
@@ -122,10 +132,12 @@ const PagesList = () => {
                   )}
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-500 mb-4">Slug: /{page.slug}</p>
-              <p className="text-sm text-gray-500 mb-4">Widgets: {page.widgets.length}</p>
-              
+              <p className="text-sm text-gray-500 mb-4">
+                Widgets: {page.widgets.length}
+              </p>
+
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleOpenEditor(page.id)}

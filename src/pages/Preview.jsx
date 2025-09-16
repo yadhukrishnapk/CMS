@@ -1,638 +1,441 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useRef, useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import useCMSStore from "../store/useCMSStore";
 import FormattingPanel from "../assets/FormattingPanel";
 
-// Enhanced Rich Text Widget with formatting support
-// Enhanced Rich Text Widget with formatting support
-const InlineRichTextWidget = ({
-  widget,
-  isInlineEditing,
-  onUpdate,
-  onStartEdit,
-  onFinishEdit,
-  onSelect,
-  isSelected,
-  contentEditableRef,
-}) => {
-  const { content = "<p>Click to edit text...</p>" } = widget.props;
-  const editorRef = useRef(null);
-  const containerRef = useRef(null);
+// === Widget Renderer ===
+const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
+  const ref = useRef(null);
 
-  useEffect(() => {
-    if (isInlineEditing && editorRef.current) {
-      editorRef.current.focus();
-    }
-  }, [isInlineEditing]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Check if the click is outside the widget container AND outside the formatting panel
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target) &&
-        !event.target.closest(".formatting-panel") // Add a class to your formatting panel
-      ) {
-        handleSave();
-      }
-    };
-
-    if (isInlineEditing) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isInlineEditing, onUpdate, content]);
-
-  const handleSave = () => {
-    const newContent = editorRef.current?.innerHTML || content;
-    if (newContent !== content) {
-      onUpdate({ content: newContent });
-    }
-    onFinishEdit();
+  // Function to get current cursor position
+  const getCursorPosition = (element) => {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return 0;
+    
+    const range = selection.getRangeAt(0);
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(element);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    return preCaretRange.toString().length;
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Escape") {
-      editorRef.current.innerHTML = content;
-      onFinishEdit();
-    } else if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSave();
-    }
-  };
-
-  const handleClick = () => {
-    onSelect();
-    if (!isInlineEditing) {
-      onStartEdit();
-    }
-  };
-
-  if (isInlineEditing) {
-    return (
-      <div className="relative" ref={containerRef}>
-        <div
-          ref={editorRef}
-          contentEditable
-          className="prose max-w-none min-h-8 p-2 border-2 border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          dangerouslySetInnerHTML={{ __html: content }}
-          onKeyDown={handleKeyDown}
-          suppressContentEditableWarning={true}
-        />
-        <div className="absolute -top-6 right-0 text-xs text-gray-500">
-          Press Esc to cancel, click outside to save
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={`prose max-w-none cursor-pointer hover:bg-gray-100 rounded p-2 transition-colors ${
-        isSelected ? "ring-2 ring-blue-300 bg-blue-50" : ""
-      }`}
-      dangerouslySetInnerHTML={{ __html: content }}
-      onClick={handleClick}
-      title="Click to edit"
-    />
-  );
-};
-
-// Enhanced Heading Widget with formatting support
-const InlineHeadingWidget = ({
-  widget,
-  isInlineEditing,
-  onUpdate,
-  onStartEdit,
-  onFinishEdit,
-  onSelect,
-  isSelected,
-}) => {
-  const { level = 1, text = "Heading", alignment = "left" } = widget.props;
-  const [editingText, setEditingText] = useState(text);
-  const HeadingTag = `h${Math.min(Math.max(level, 1), 6)}`;
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    if (isInlineEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isInlineEditing]);
-
-  const handleSave = () => {
-    onUpdate({ text: editingText });
-    onFinishEdit();
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSave();
-    } else if (e.key === "Escape") {
-      setEditingText(text);
-      onFinishEdit();
-    }
-  };
-
-  const handleClick = () => {
-    onSelect();
-    if (!isInlineEditing) {
-      onStartEdit();
-    }
-  };
-
-  if (isInlineEditing) {
-    return (
-      <input
-        ref={inputRef}
-        type="text"
-        value={editingText}
-        onChange={(e) => setEditingText(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={handleKeyDown}
-        className={`w-full bg-transparent border-none outline-none text-${
-          level === 1
-            ? "4xl"
-            : level === 2
-            ? "3xl"
-            : level === 3
-            ? "2xl"
-            : level === 4
-            ? "xl"
-            : level === 5
-            ? "lg"
-            : "base"
-        } font-bold text-gray-800 text-${alignment} focus:ring-2 focus:ring-blue-300 rounded px-1`}
-        style={{ fontSize: "inherit", fontWeight: "inherit" }}
-      />
-    );
-  }
-
-  return (
-    <HeadingTag
-      className={`text-${
-        level === 1
-          ? "4xl"
-          : level === 2
-          ? "3xl"
-          : level === 3
-          ? "2xl"
-          : level === 4
-          ? "xl"
-          : level === 5
-          ? "lg"
-          : "base"
-      } font-bold text-gray-800 text-${alignment} cursor-pointer hover:bg-gray-100 rounded px-1 transition-colors ${
-        isSelected ? "ring-2 ring-blue-300 bg-blue-50" : ""
-      }`}
-      onClick={handleClick}
-      title="Click to edit"
-    >
-      {text}
-    </HeadingTag>
-  );
-};
-
-// Other widget components (unchanged)
-const InlineButtonWidget = ({
-  widget,
-  isInlineEditing,
-  onUpdate,
-  onStartEdit,
-  onFinishEdit,
-  onSelect,
-  isSelected,
-}) => {
-  const { label = "Button", link = "", target = "_self" } = widget.props;
-  const [editingLabel, setEditingLabel] = useState(label);
-  const [editingLink, setEditingLink] = useState(link);
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    if (isInlineEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isInlineEditing]);
-
-  const handleSave = () => {
-    onUpdate({ label: editingLabel, link: editingLink });
-    onFinishEdit();
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSave();
-    } else if (e.key === "Escape") {
-      setEditingLabel(label);
-      setEditingLink(link);
-      onFinishEdit();
-    }
-  };
-
-  if (isInlineEditing) {
-    return (
-      <div className="space-y-2">
-        <input
-          ref={inputRef}
-          type="text"
-          value={editingLabel}
-          onChange={(e) => setEditingLabel(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium"
-          placeholder="Button text"
-        />
-        <input
-          type="text"
-          value={editingLink}
-          onChange={(e) => setEditingLink(e.target.value)}
-          onBlur={handleSave}
-          onKeyDown={handleKeyDown}
-          className="block w-full px-3 py-2 border border-gray-300 rounded text-sm"
-          placeholder="Link URL (optional)"
-        />
-      </div>
-    );
-  }
-
-  return (
-    <button
-      className={`px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer ${
-        isSelected ? "ring-2 ring-blue-300" : ""
-      }`}
-      onClick={(e) => {
-        e.preventDefault();
-        onSelect();
-        if (link) {
-          window.open(link, target);
-        } else {
-          onStartEdit();
+  // Function to set cursor position
+  const setCursorPosition = (element, position) => {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    
+    let charCount = 0;
+    let nodeStack = [element];
+    
+    while (nodeStack.length > 0) {
+      const node = nodeStack.pop();
+      
+      if (node.nodeType === Node.TEXT_NODE) {
+        const nextCharCount = charCount + node.length;
+        if (position >= charCount && position <= nextCharCount) {
+          range.setStart(node, position - charCount);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          return;
         }
-      }}
-      onDoubleClick={onStartEdit}
-      title="Double-click to edit"
-    >
-      {label}
-    </button>
-  );
-};
-
-const InlineImageWidget = ({
-  widget,
-  isInlineEditing,
-  onUpdate,
-  onStartEdit,
-  onFinishEdit,
-  onSelect,
-  isSelected,
-}) => {
-  const { src = "", alt = "", width = "100%", height = "auto" } = widget.props;
-  const [editingSrc, setEditingSrc] = useState(src);
-  const [editingAlt, setEditingAlt] = useState(alt);
-
-  const handleSave = () => {
-    onUpdate({ src: editingSrc, alt: editingAlt });
-    onFinishEdit();
-  };
-
-  const handleClick = () => {
-    onSelect();
-    if (!isInlineEditing) {
-      onStartEdit();
-    }
-  };
-
-  if (isInlineEditing) {
-    return (
-      <div className="space-y-3 p-4 border-2 border-blue-300 rounded">
-        <input
-          type="text"
-          value={editingSrc}
-          onChange={(e) => setEditingSrc(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded"
-          placeholder="Image URL"
-          autoFocus
-        />
-        <input
-          type="text"
-          value={editingAlt}
-          onChange={(e) => setEditingAlt(e.target.value)}
-          onBlur={handleSave}
-          className="w-full px-3 py-2 border border-gray-300 rounded"
-          placeholder="Alt text"
-        />
-        {editingSrc && (
-          <img
-            src={editingSrc}
-            alt={editingAlt}
-            className="max-w-full h-auto rounded"
-            style={{ width, height }}
-          />
-        )}
-      </div>
-    );
-  }
-
-  return src ? (
-    <img
-      src={src}
-      alt={alt}
-      className={`max-w-full h-auto cursor-pointer hover:opacity-80 transition-opacity ${
-        isSelected ? "ring-2 ring-blue-300" : ""
-      }`}
-      style={{ width, height }}
-      onClick={handleClick}
-      title="Click to edit"
-    />
-  ) : (
-    <div
-      className={`w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors ${
-        isSelected ? "ring-2 ring-blue-300" : ""
-      }`}
-      onClick={handleClick}
-      title="Click to add image"
-    >
-      <span className="text-gray-500">Click to add image</span>
-    </div>
-  );
-};
-
-// Enhanced Inline-editable widget container
-const InlineEditableWidget = ({
-  widget,
-  selectedWidgetId,
-  onSelectWidget,
-  contentEditableRef,
-}) => {
-  const { updateWidget } = useCMSStore();
-  const [editingWidgetId, setEditingWidgetId] = useState(null);
-  const [editingWidgetType, setEditingWidgetType] = useState(null);
-  const [savedRange, setSavedRange] = useState(null);
-
-  const isInlineEditing = editingWidgetId === widget.id;
-  const isSelected = selectedWidgetId === widget.id;
-
-  const handleUpdate = (updates) => {
-    updateWidget(widget.id, { props: { ...widget.props, ...updates } });
-  };
-
-  const handleStartEdit = () => {
-    setEditingWidgetId(widget.id);
-    setEditingWidgetType(widget.type);
-  };
-
-  const handleFinishEdit = () => {
-    setEditingWidgetId(null);
-    setEditingWidgetType(null);
-    setSavedRange(null); // Clear saved range on finish
-  };
-
-  const handleSelect = () => {
-    onSelectWidget(widget.id);
-  };
-
-  const renderWidget = () => {
-    const commonProps = {
-      widget,
-      isInlineEditing,
-      onUpdate: handleUpdate,
-      onStartEdit: handleStartEdit,
-      onFinishEdit: handleFinishEdit,
-      onSelect: handleSelect,
-      isSelected,
-      contentEditableRef,
-    };
-
-    switch (widget.type) {
-      case "heading":
-        return <InlineHeadingWidget {...commonProps} />;
-      case "richText":
-        return (
-          <InlineRichTextWidget
-            {...commonProps}
-            contentEditableRef={contentEditableRef}
-          />
-        );
-      case "button":
-        return <InlineButtonWidget {...commonProps} />;
-      case "image":
-        return <InlineImageWidget {...commonProps} />;
-      case "spacer":
-        return (
-          <div
-            style={{ height: widget.props.height || 40 }}
-            className={`w-full ${
-              isSelected ? "bg-blue-50 border-2 border-blue-300 rounded" : ""
-            }`}
-            onClick={handleSelect}
-          />
-        );
-      case "divider":
-        return (
-          <hr
-            className={`w-full border-gray-300 ${
-              isSelected ? "border-blue-300 border-2" : ""
-            }`}
-            style={{
-              borderWidth: widget.props.thickness || 1,
-              borderColor: widget.props.color || "#e5e7eb",
-            }}
-            onClick={handleSelect}
-          />
-        );
-      default:
-        return (
-          <div className="p-4 text-gray-500">
-            Unknown widget type: {widget.type}
-          </div>
-        );
-    }
-  };
-
-  return <div className="w-full">{renderWidget()}</div>;
-};
-
-const Preview = () => {
-  const { pageId } = useParams();
-  const navigate = useNavigate();
-  const { pages, widgets, updateWidget } = useCMSStore();
-  const [selectedWidgetId, setSelectedWidgetId] = useState(null);
-  const [editingWidgetId, setEditingWidgetId] = useState(null);
-  const [editingWidgetType, setEditingWidgetType] = useState(null);
-  const [savedRange, setSavedRange] = useState(null);
-  const contentEditableRef = useRef(null);
-
-  const handleSelectionChange = () => {
-    if (
-      editingWidgetId &&
-      (editingWidgetType === "richText" || editingWidgetType === "heading")
-    ) {
-      setSavedRange(saveSelection());
-    }
-  };
-  useEffect(() => {
-    if (editingWidgetId) {
-      document.addEventListener("selectionchange", handleSelectionChange);
-      return () =>
-        document.removeEventListener("selectionchange", handleSelectionChange);
-    }
-  }, [editingWidgetId, editingWidgetType]);
-
-  const handleFormat = (cmd, value = null) => {
-    if (contentEditableRef.current && savedRange) {
-      restoreSelection(savedRange);
-
-      // Handle different formatting commands
-      switch (cmd) {
-        case "color":
-          document.execCommand("foreColor", false, value);
-          break;
-        case "backgroundColor":
-          document.execCommand("hiliteColor", false, value);
-          break;
-        case "removeFormat":
-          document.execCommand("removeFormat", false, null);
-          break;
-        default:
-          document.execCommand(cmd, false, value);
-          break;
+        charCount = nextCharCount;
+      } else {
+        for (let i = node.childNodes.length - 1; i >= 0; i--) {
+          nodeStack.push(node.childNodes[i]);
+        }
       }
-
-      contentEditableRef.current.focus();
-      // Save the new selection after formatting
-      setSavedRange(saveSelection());
     }
   };
 
-  const handleColor = (color) => {
-    if (contentEditableRef.current && savedRange) {
-      restoreSelection(savedRange);
-      document.execCommand("foreColor", false, color);
-      contentEditableRef.current.focus();
+  const handleContentChange = (e, type) => {
+    if (!onContentChange || !isEditable) return;
+    
+    const element = e.target || e.currentTarget;
+    const cursorPosition = getCursorPosition(element);
+    
+    let newContent;
+    if (type === 'text') {
+      newContent = element.textContent;
+    } else {
+      newContent = element.innerHTML;
     }
-  };
-  const handleBgColor = (color) => {
-    if (contentEditableRef.current && savedRange) {
-      restoreSelection(savedRange);
-      document.execCommand("hiliteColor", false, color);
-      contentEditableRef.current.focus();
-    }
+    
+    // Update the content
+    onContentChange(widget.id, newContent);
+    
+    // Restore cursor position after React re-render
+    setTimeout(() => {
+      if (element && document.contains(element)) {
+        setCursorPosition(element, cursorPosition);
+      }
+    }, 0);
   };
 
-  const currentPage = pages.find((page) => page.id === pageId);
+  switch (widget.type) {
+    case 'heading':
+      const HeadingTag = `h${widget.props.level}`;
+      const headingClasses = `
+        ${widget.props.font_size === '3xl' ? 'text-5xl md:text-6xl' : 
+          widget.props.font_size === '2xl' ? 'text-4xl md:text-5xl' : 
+          widget.props.font_size === 'xl' ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'}
+        ${widget.props.font_weight === 'bold' ? 'font-bold' : 'font-semibold'}
+        ${widget.props.alignment === 'center' ? 'text-center' : 
+          widget.props.alignment === 'right' ? 'text-right' : 'text-left'}
+        mb-6 leading-tight tracking-tight
+      `.trim();
+      
+      return React.createElement(
+        HeadingTag,
+        {
+          className: headingClasses,
+          style: { color: widget.props.color },
+          contentEditable: isEditable,
+          suppressContentEditableWarning: true,
+          onInput: isEditable ? (e) => handleContentChange(e, 'text') : undefined,
+        },
+        widget.props.text
+      );
+
+    case 'richText':
+      return (
+        <div
+          ref={ref}
+          className={`
+            prose prose-lg prose-gray max-w-none
+            ${widget.props.text_align === 'center' ? 'text-center' : 
+              widget.props.text_align === 'right' ? 'text-right' : 'text-left'}
+            ${widget.props.font_size === 'lg' ? 'text-lg leading-relaxed' : 
+              widget.props.font_size === 'sm' ? 'text-sm leading-relaxed' : 'text-base leading-relaxed'}
+            ${widget.props.line_height === 'tight' ? 'leading-tight' : 
+              widget.props.line_height === 'loose' ? 'leading-loose' : 'leading-relaxed'}
+            mb-8 prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600 prose-strong:text-gray-900
+          `.trim()}
+          contentEditable={isEditable}
+          suppressContentEditableWarning={true}
+          dangerouslySetInnerHTML={{ __html: widget.props.content }}
+          onInput={isEditable ? (e) => handleContentChange(e, 'html') : undefined}
+        />
+      );
+
+    case 'button':
+      return (
+        <div className={`
+          ${widget.props.alignment === 'center' ? 'text-center' : 
+            widget.props.alignment === 'right' ? 'text-right' : 'text-left'}
+          mb-8
+        `.trim()}>
+          <a
+            href={widget.props.link}
+            target={widget.props.target}
+            className={`
+              inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300
+              hover:scale-105 hover:shadow-2xl active:scale-95 transform
+              ${widget.props.size === 'sm' ? 'px-6 py-3 text-sm' : 
+                widget.props.size === 'lg' ? 'px-10 py-5 text-lg' : 'px-8 py-4 text-base'}
+              shadow-lg hover:shadow-xl
+            `.trim()}
+            style={{
+              backgroundColor: widget.props.background_color,
+              color: widget.props.text_color,
+              borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
+                           widget.props.border_radius === 'lg' ? '1rem' : 
+                           widget.props.border_radius === 'sm' ? '0.5rem' : '0.75rem'
+            }}
+          >
+            {widget.props.label}
+            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      );
+
+    case 'spacer':
+      return (
+        <div
+          style={{
+            height: `${widget.props.height}px`,
+            backgroundColor: widget.props.background_color,
+          }}
+          className="w-full"
+        />
+      );
+
+    case 'divider':
+      return (
+        <div className="my-8 flex justify-center">
+          <hr
+            style={{
+              borderStyle: widget.props.style,
+              borderWidth: `${widget.props.thickness}px 0 0 0`,
+              borderColor: widget.props.color,
+              width: widget.props.width,
+              opacity: widget.props.opacity,
+            }}
+            className="border-0 max-w-md"
+          />
+        </div>
+      );
+
+    case 'image':
+      return (
+        <div className="mb-8">
+          <img
+            src={widget.props.src}
+            alt={widget.props.alt}
+            className="max-w-full h-auto shadow-lg"
+            style={{
+              width: widget.props.width,
+              height: widget.props.height,
+              objectFit: widget.props.object_fit,
+              borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
+                           widget.props.border_radius === 'lg' ? '1rem' : 
+                           widget.props.border_radius === 'sm' ? '0.5rem' : '0'
+            }}
+          />
+        </div>
+      );
+
+    default:
+      return null;
+  }
+};
+
+// === Main Preview Component ===
+const Preview = () => {
+  const { widgets, pages, currentPageId, updateWidget, initializeDemoData } = useCMSStore();
+  const editorRef = useRef(null);
+  const savedRangeRef = useRef(null);
+  const [isFormattingPanelVisible, setIsFormattingPanelVisible] = useState(true);
+  
+  // Get current location to determine if we're in preview mode
+  const location = useLocation();
+  const isPreviewMode = location.pathname.startsWith('/preview/');
+
+  // Initialize demo data on mount
+  useEffect(() => {
+    initializeDemoData();
+  }, [initializeDemoData]);
+
+  // Get current page and its widgets
+  const currentPage = pages.find(page => page.id === currentPageId) || pages[0];
+  const pageWidgets = currentPage ? currentPage.widgets.map(widgetId => widgets[widgetId]).filter(Boolean) : [];
+
+  const handleWidgetContentChange = (widgetId, newContent) => {
+    // Don't allow content changes in preview mode
+    if (isPreviewMode) return;
+    
+    const widget = widgets[widgetId];
+    if (widget) {
+      if (widget.type === 'richText') {
+        updateWidget(widgetId, {
+          props: { ...widget.props, content: newContent }
+        });
+      } else if (widget.type === 'heading') {
+        updateWidget(widgetId, {
+          props: { ...widget.props, text: newContent }
+        });
+      }
+    }
+  };
 
   if (!currentPage) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-600 mb-2">
-            Page not found
-          </h2>
-          <button
-            onClick={() => navigate("/pages")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Back to Pages
-          </button>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading your content...</p>
         </div>
       </div>
     );
   }
 
-  const pageWidgets = currentPage.widgets
-    .map((id) => widgets[id])
-    .filter(Boolean);
-
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Main Content Area */}
-      <div className="flex-1">
-        {/* Preview Header */}
-        <div className="bg-white shadow-sm border-b px-6 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Floating Header */}
+      <header className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/80 backdrop-blur-md shadow-2xl rounded-2xl border border-white/20">
+        <div className="px-6 py-4 flex items-center space-x-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-800">
-                {currentPage.title}
-              </h1>
-              <p className="text-sm text-blue-600">
-                ✨ Inline Editing Mode - Click any content to edit and format
+              <h1 className="text-lg font-bold text-gray-900">Enhanced CMS</h1>
+              <p className="text-xs text-gray-500">
+                {isPreviewMode ? 'Preview Mode' : 'Live Preview'}
               </p>
             </div>
-            <div className="flex space-x-3">
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {/* Only show formatting panel toggle in editor mode */}
+            {!isPreviewMode && (
               <button
-                onClick={() => navigate(`/editor/${pageId}`)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => setIsFormattingPanelVisible(!isFormattingPanelVisible)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium transition-colors duration-200"
               >
-                Advanced Editor
+                {isFormattingPanelVisible ? 'Hide' : 'Show'} Tools
               </button>
-              <button
-                onClick={() => navigate("/pages")}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                Back to Pages
-              </button>
+            )}
+            <div className="flex items-center space-x-2">
+              <span className={`px-3 py-1 text-sm font-medium rounded-full border ${
+                isPreviewMode 
+                  ? 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border-blue-200'
+                  : 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200'
+              }`}>
+                {isPreviewMode ? 'Preview' : currentPage.status}
+              </span>
+              {!isPreviewMode && (
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Auto-save active"></div>
+              )}
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Page Content */}
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            {pageWidgets.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-4xl mb-4">📄</div>
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                  This page is empty
+      <div className="pt-24 pb-12 bg-red-400">
+        <div className="max-w-6xl mx-auto flex gap-8 px-4">
+          {/* Main Content Area */}
+          <main className={`${(!isPreviewMode && isFormattingPanelVisible) ? 'flex-1' : 'w-full max-w-4xl mx-auto'} transition-all duration-300`}>
+            <div className="bg-white shadow-2xl rounded-3xl border border-gray-100 overflow-hidden">
+              {/* Page Header */}
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentPage.title}</h2>
+                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <span>By {currentPage.author.name}</span>
+                  <span>•</span>
+                  <span>Updated {new Date(currentPage.updated_at).toLocaleDateString()}</span>
+                  <span>•</span>
+                  <span className="font-mono bg-gray-200 px-2 py-1 rounded text-xs">/{currentPage.slug}</span>
+                  {isPreviewMode && (
+                    <>
+                      <span>•</span>
+                      <span className="text-blue-600 font-medium">Read-only Preview</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Content Area */}
+              <div 
+                ref={editorRef}
+                className={`px-8 py-12 lg:px-16 lg:py-16 min-h-[800px] transition-all duration-300 ${
+                  !isPreviewMode ? 'focus-within:bg-blue-50/20' : ''
+                }`}
+              >
+                {pageWidgets.length > 0 ? (
+                  <div className="max-w-4xl mx-auto">
+                    {pageWidgets.map((widget) => (
+                      <div
+                        key={widget.id}
+                        className={`widget-container group relative ${!isPreviewMode ? 'hover:bg-blue-50/10' : ''}`}
+                        style={{
+                          marginTop: `${widget.layout.margin.top}px`,
+                          marginRight: `${widget.layout.margin.right}px`,
+                          marginBottom: `${widget.layout.margin.bottom}px`,
+                          marginLeft: `${widget.layout.margin.left}px`,
+                          paddingTop: `${widget.layout.padding.top}px`,
+                          paddingRight: `${widget.layout.padding.right}px`,
+                          paddingBottom: `${widget.layout.padding.bottom}px`,
+                          paddingLeft: `${widget.layout.padding.left}px`,
+                        }}
+                      >
+                        <WidgetRenderer
+                          widget={widget}
+                          isEditable={!isPreviewMode}
+                          onContentChange={handleWidgetContentChange}
+                        />
+                        
+                        {/* Enhanced Widget Overlay - only show in editor mode */}
+                        {!isPreviewMode && (
+                          <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-300/50 group-focus-within:border-blue-500/70 rounded-xl pointer-events-none transition-all duration-200 group-hover:shadow-lg group-focus-within:shadow-xl">
+                            <div className="absolute -top-3 left-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 transform -translate-y-2 group-hover:translate-y-0">
+                              <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs px-3 py-1 rounded-full shadow-lg font-medium">
+                                {widget.type}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-24 max-w-2xl mx-auto">
+                    <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center">
+                      <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      {isPreviewMode ? 'No Content Available' : 'Ready to Create'}
+                    </h3>
+                    <p className="text-gray-600 text-lg mb-6">
+                      {isPreviewMode 
+                        ? 'This page doesn\'t have any content yet.' 
+                        : 'Start building your page by adding content widgets.'
+                      }
+                    </p>
+                    {!isPreviewMode && (
+                      <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 hover:scale-105">
+                        Add Your First Widget
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </main>
+
+          {/* Floating Formatting Panel - only show in editor mode */}
+          {!isPreviewMode && isFormattingPanelVisible && (
+            <aside className="w-80 sticky top-28 h-fit">
+              <FormattingPanel savedRangeRef={savedRangeRef} editorRef={editorRef} />
+              
+              {/* Enhanced Page Stats */}
+              <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 p-6 shadow-xl">
+                <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  Page Insights
                 </h3>
-                <p className="text-gray-500">
-                  Go to the Advanced Editor to add some widgets
-                </p>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                    <span className="text-gray-600 font-medium">Content Blocks</span>
+                    <span className="text-blue-600 font-bold text-lg">{pageWidgets.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+                    <span className="text-gray-600 font-medium">Status</span>
+                    <span className="text-green-600 font-bold capitalize">{currentPage.status}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                    <span className="text-gray-600 font-medium">Author</span>
+                    <span className="text-purple-600 font-bold">{currentPage.author.name}</span>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-6">
-                {pageWidgets.map((widget) => (
-                  <InlineEditableWidget
-                    key={widget.id}
-                    widget={widget}
-                    selectedWidgetId={selectedWidgetId}
-                    onSelectWidget={setSelectedWidgetId}
-                    contentEditableRef={contentEditableRef}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+            </aside>
+          )}
         </div>
       </div>
 
-      {/* Formatting Panel */}
-      <FormattingPanel
-        selectedWidget={selectedWidgetId ? widgets[selectedWidgetId] : null}
-        onFormatText={handleFormat} // Pass the unified handler
-        isVisible={true}
-      />
+      {/* Floating Save Indicator - only show in editor mode */}
+      {!isPreviewMode && (
+        <div className="fixed bottom-6 right-6 bg-white/90 backdrop-blur-sm shadow-2xl rounded-2xl px-6 py-4 border border-gray-100">
+          <div className="flex items-center space-x-3">
+            <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse shadow-lg"></div>
+            <span className="text-sm font-medium text-gray-700">Auto-saved</span>
+            <span className="text-xs text-gray-500">{new Date().toLocaleTimeString()}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
-// Selection helpers
-function saveSelection() {
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount > 0) {
-    return sel.getRangeAt(0).cloneRange();
-  }
-  return null;
-}
-function restoreSelection(savedRange) {
-  if (!savedRange) return;
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(savedRange);
-}
 
 export default Preview;

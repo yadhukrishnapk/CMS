@@ -1,165 +1,174 @@
-// src/components/FormattingPanel.jsx
+import React, { useState, useEffect } from "react";
 
-import React from "react";
+const FormattingPanel = ({ savedRangeRef, editorRef }) => {
+  const [selectedText, setSelectedText] = useState("");
 
-const FormattingPanel = ({ selectedWidget, onFormatText, isVisible }) => {
-  const colors = [
-    "#000000",
-    "#374151",
-    "#6B7280",
-    "#DC2626",
-    "#EA580C",
-    "#D97706",
-    "#65A30D",
-    "#059669",
-    "#0891B2",
-    "#2563EB",
-    "#7C3AED",
-    "#C026D3",
-    "#BE185D",
+  // Save current selection
+  const saveSelection = () => {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      savedRangeRef.current = selection.getRangeAt(0).cloneRange();
+    }
+  };
+
+  // Restore saved selection
+  const restoreSelection = () => {
+    if (savedRangeRef.current) {
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(savedRangeRef.current);
+      editorRef.current?.focus();
+    }
+  };
+
+  // Apply formatting
+  const applyFormat = (command, value = null) => {
+    if (!savedRangeRef.current) return;
+  
+    // Restore selection
+    restoreSelection();
+  
+    // Apply formatting
+    document.execCommand(command, false, value);
+  
+    // Save updated selection
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      savedRangeRef.current = selection.getRangeAt(0).cloneRange();
+    }
+  
+    // 🔑 Ensure cursor doesn't reset after React re-render
+    setTimeout(() => {
+      restoreSelection();
+    }, 0);
+  };
+
+  // Listen to selection change
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const text = selection.toString().trim();
+      
+      if (text && editorRef.current?.contains(selection.anchorNode)) {
+        setSelectedText(text);
+        savedRangeRef.current = selection.getRangeAt(0).cloneRange();
+      } else if (!text) {
+        setSelectedText("");
+        // Keep the range if cursor is still in editor but no text selected
+        if (editorRef.current?.contains(selection.anchorNode) && selection.rangeCount > 0) {
+          savedRangeRef.current = selection.getRangeAt(0).cloneRange();
+        }
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
+  }, [editorRef, savedRangeRef]);
+
+  // Colors
+  const textColors = [
+    "#000000", "#374151", "#6B7280", "#DC2626",
+    "#059669", "#2563EB", "#7C3AED", "#FFFFFF"
   ];
-
-  const backgroundColors = [
-    "transparent",
-    "#F3F4F6",
-    "#FEF3C7",
-    "#DBEAFE",
-    "#D1FAE5",
-    "#FCE7F3",
-    "#F3E8FF",
-    "#FEE2E2",
+  const bgColors = [
+    "transparent", "#FEF3C7", "#DBEAFE",
+    "#D1FAE5", "#FCE7F3", "#FEE2E2"
   ];
-
-  if (!isVisible || !selectedWidget) {
-    return (
-      <div className="w-80 bg-white border-l border-gray-200 p-6">
-        <div className="text-center text-gray-500">
-          <div className="text-2xl mb-2">🎨</div>
-          <p>Select a text block to see formatting options</p>
-        </div>
-      </div>
-    );
-  }
-
-  const isTextWidget = ["heading", "richText"].includes(selectedWidget.type);
-
-  if (!isTextWidget) {
-    return (
-      <div className="w-80 bg-white border-l border-gray-200 p-6">
-        <div className="text-center text-gray-500">
-          <div className="text-2xl mb-2">⚙️</div>
-          <p>Widget options coming soon...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="w-80 bg-white border-l border-gray-200 p-6 space-y-6 formatting-panel">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Text Formatting
-        </h3>
+    <div className="bg-white shadow-xl rounded-2xl p-6 w-80 border border-gray-100 backdrop-blur-sm bg-white/95">
+      <h3 className="font-bold text-gray-800 mb-4 flex items-center text-lg">
+        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </div>
+        Text Formatting
+      </h3>
 
-        {/* Basic Formatting */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Basic Formatting
-            </label>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => onFormatText("bold")}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded border font-bold"
-                title="Bold"
-              >
-                B
-              </button>
-              <button
-                onClick={() => onFormatText("italic")}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded border italic"
-                title="Italic"
-              >
-                I
-              </button>
-              <button
-                onClick={() => onFormatText("underline")}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded border underline"
-                title="Underline"
-              >
-                U
-              </button>
-            </div>
+      {selectedText && (
+        <div className="mb-4 text-sm text-blue-700 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3">
+          <div className="font-medium mb-1">Selected text:</div>
+          <div className="text-gray-600 truncate font-mono text-xs bg-white/60 px-2 py-1 rounded">
+            {selectedText.slice(0, 30)}{selectedText.length > 30 ? '...' : ''}
           </div>
+        </div>
+      )}
 
-          {/* Text Color */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Text Color
-            </label>
-            <div className="grid grid-cols-7 gap-1">
-              {colors.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => onFormatText("color", color)}
-                  className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-500"
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Background Color */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Background Color
-            </label>
-            <div className="grid grid-cols-4 gap-1">
-              {backgroundColors.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => onFormatText("backgroundColor", color)}
-                  className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-500"
-                  style={{
-                    backgroundColor: color === "transparent" ? "#fff" : color,
-                    backgroundImage:
-                      color === "transparent"
-                        ? "linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0)"
-                        : "none",
-                    backgroundSize:
-                      color === "transparent" ? "8px 8px" : "auto",
-                    backgroundPosition:
-                      color === "transparent" ? "0 0, 4px 4px" : "initial",
-                  }}
-                  title={color === "transparent" ? "No background" : color}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Additional Actions */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Actions
-            </label>
-            <div className="space-y-2">
-              <button
-                onClick={() => onFormatText("removeFormat")}
-                className="w-full px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded border border-red-200"
-              >
-                Remove Formatting
-              </button>
-            </div>
-          </div>
+      {/* Basic Formatting */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-gray-600 mb-3">Basic Formatting</p>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => applyFormat("bold")} 
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-xl font-bold transition-all duration-200 hover:shadow-md active:scale-95 border border-gray-200"
+            title="Bold"
+          >
+            B
+          </button>
+          <button 
+            onClick={() => applyFormat("italic")} 
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-xl italic transition-all duration-200 hover:shadow-md active:scale-95 border border-gray-200"
+            title="Italic"
+          >
+            I
+          </button>
+          <button 
+            onClick={() => applyFormat("underline")} 
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-xl underline transition-all duration-200 hover:shadow-md active:scale-95 border border-gray-200"
+            title="Underline"
+          >
+            U
+          </button>
         </div>
       </div>
 
-      <div className="border-t pt-4">
-        <p className="text-xs text-gray-500">
-          Select text in the editor and use these tools to format it.
-        </p>
+      {/* Text Color */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-gray-600 mb-3">Text Color</p>
+        <div className="grid grid-cols-8 gap-2">
+          {textColors.map((color) => (
+            <button
+              key={color}
+              onClick={() => applyFormat("foreColor", color)}
+              className="w-8 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+              style={{ background: color }}
+              title={color}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* Background Color */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-gray-600 mb-3">Background Highlight</p>
+        <div className="grid grid-cols-6 gap-2">
+          {bgColors.map((color) => (
+            <button
+              key={color}
+              onClick={() => applyFormat("hiliteColor", color)}
+              className="w-10 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+              style={{
+                background:
+                  color === "transparent"
+                    ? "repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%) 50% / 8px 8px"
+                    : color,
+              }}
+              title={color === "transparent" ? "Remove highlight" : color}
+            />
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={() => applyFormat("removeFormat")}
+        className="w-full px-4 py-3 text-red-600 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl hover:from-red-100 hover:to-pink-100 transition-all duration-200 font-medium hover:shadow-md active:scale-95"
+      >
+        <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        Clear Formatting
+      </button>
     </div>
   );
 };

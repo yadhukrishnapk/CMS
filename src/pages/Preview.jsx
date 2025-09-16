@@ -3,7 +3,148 @@ import { useLocation } from "react-router-dom";
 import useCMSStore from "../store/useCMSStore";
 import FormattingPanel from "../assets/FormattingPanel";
 
+// Available widget types configuration
+const availableWidgetTypes = [
+  { value: 'heading', label: 'Heading' },
+  { value: 'richText', label: 'Rich Text' },
+  { value: 'image', label: 'Image' },
+  { value: 'button', label: 'Button' },
+  { value: 'spacer', label: 'Spacer' },
+  { value: 'divider', label: 'Divider' },
+];
+
+// === Widget Type Selector ===
+const WidgetTypeSelector = ({ onSelect, currentType }) => {
+  return (
+    <div className="absolute top-full left-0 mt-2 z-50 bg-white shadow-xl rounded-lg border border-gray-200 py-1 w-48">
+      {availableWidgetTypes.map(({ value, label }) => (
+        <button
+          key={value}
+          onClick={() => onSelect(value)}
+          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+            value === currentType ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+// === Widget Block ===
+const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget }) => {
+  const blockRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const { changeWidgetType } = useCMSStore();
+
+  const currentTypeConfig = availableWidgetTypes.find((t) => t.value === widget.type);
+  const currentLabel = currentTypeConfig ? currentTypeConfig.label : widget.type;
+
+  const handleTypeChange = (newType) => {
+    changeWidgetType(widget.id, newType);
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (blockRef.current && !blockRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div
+      ref={blockRef}
+      className={`widget-container group relative mb-4 rounded-xl ${!isEditable ? '' : 'hover:bg-pink-50/10'}`}
+      style={{
+        marginTop: `${widget.layout.margin.top}px`,
+        marginRight: `${widget.layout.margin.right}px`,
+        marginBottom: `${widget.layout.margin.bottom}px`,
+        marginLeft: `${widget.layout.margin.left}px`,
+        paddingTop: `${widget.layout.padding.top}px`,
+        paddingRight: `${widget.layout.padding.right}px`,
+        paddingBottom: `${widget.layout.padding.bottom}px`,
+        paddingLeft: `${widget.layout.padding.left}px`,
+      }}
+    >
+      <WidgetRenderer
+        widget={widget}
+        isEditable={isEditable}
+        onContentChange={onContentChange}
+      />
+
+      {/* Edit Mode Controls */}
+      {isEditable && (
+        <>
+          {/* Widget Type Badge */}
+          <button
+            onClick={() => setIsOpen((prev) => !prev)}
+            className="absolute -top-2 left-2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs px-2 py-1 rounded shadow-lg hover:shadow-md"
+            title="Change widget type"
+          >
+            {currentLabel}
+          </button>
+
+          {/* Widget Type Selector */}
+          {isOpen && (
+            <WidgetTypeSelector onSelect={handleTypeChange} currentType={widget.type} />
+          )}
+
+          {/* Top + Button */}
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20">
+            <button
+              onClick={() => addWidget('richText', currentPageId, index)}
+              className="bg-white border-2 border-pink-400 text-pink-600 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 font-bold text-sm"
+              title="Insert new widget above"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Bottom + Button */}
+          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-20">
+            <button
+              onClick={() => addWidget('richText', currentPageId, index + 1)}
+              className="bg-white border-2 border-pink-400 text-pink-600 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 font-bold text-sm"
+              title="Insert new widget below"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Delete Button */}
+          <div className="absolute top-2 right-2 z-20">
+            <button
+              onClick={() => deleteWidget(widget.id)}
+              className="bg-red-500/10 border border-red-300 text-red-600 rounded-full w-7 h-7 flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:bg-red-500/20 hover:scale-105 font-bold text-xs"
+              title="Delete this widget"
+            >
+              ×
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Widget Overlay - only show in editor mode */}
+      {isEditable && (
+        <div className="absolute inset-0 border-2 border-pink-400/50 rounded-xl pointer-events-none transition-all duration-200" />
+      )}
+    </div>
+  );
+};
+
 // === Widget Renderer ===
+// Enhanced WidgetRenderer component with better placeholders
 const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
   const ref = useRef(null);
 
@@ -72,6 +213,25 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
     }, 0);
   };
 
+  const handleFocus = (e) => {
+    // Clear placeholder styling on focus
+    const element = e.target;
+    if (element.classList.contains('empty-placeholder')) {
+      element.classList.remove('empty-placeholder');
+      if (element.textContent.trim() === '') {
+        element.innerHTML = '';
+      }
+    }
+  };
+
+  const handleBlur = (e) => {
+    // Add placeholder styling if empty
+    const element = e.target;
+    if (element.textContent.trim() === '') {
+      element.classList.add('empty-placeholder');
+    }
+  };
+
   switch (widget.type) {
     case 'heading':
       const HeadingTag = `h${widget.props.level}`;
@@ -83,21 +243,32 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
         ${widget.props.alignment === 'center' ? 'text-center' : 
           widget.props.alignment === 'right' ? 'text-right' : 'text-left'}
         mb-6 leading-tight tracking-tight
+        ${!widget.props.text || widget.props.text.trim() === '' ? 'empty-placeholder' : ''}
       `.trim();
       
       return React.createElement(
         HeadingTag,
         {
           className: headingClasses,
-          style: { color: widget.props.color },
+          style: { 
+            color: widget.props.color,
+            ...((!widget.props.text || widget.props.text.trim() === '') && isEditable ? {
+              position: 'relative'
+            } : {})
+          },
           contentEditable: isEditable,
           suppressContentEditableWarning: true,
           onInput: isEditable ? (e) => handleContentChange(e, 'text') : undefined,
+          onFocus: isEditable ? handleFocus : undefined,
+          onBlur: isEditable ? handleBlur : undefined,
+          'data-placeholder': 'Enter heading text...'
         },
-        widget.props.text
+        widget.props.text || (isEditable ? '' : 'Heading')
       );
 
     case 'richText':
+      const isEmpty = !widget.props.content || widget.props.content.trim() === '' || widget.props.content === '<p></p>';
+      
       return (
         <div
           ref={ref}
@@ -110,11 +281,20 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
             ${widget.props.line_height === 'tight' ? 'leading-tight' : 
               widget.props.line_height === 'loose' ? 'leading-loose' : 'leading-relaxed'}
             mb-8 prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600 prose-strong:text-gray-900
+            ${isEmpty && isEditable ? 'empty-placeholder' : ''}
           `.trim()}
           contentEditable={isEditable}
           suppressContentEditableWarning={true}
-          dangerouslySetInnerHTML={{ __html: widget.props.content }}
+          dangerouslySetInnerHTML={{ 
+            __html: isEmpty && isEditable ? '' : (widget.props.content || '<p>Start writing...</p>')
+          }}
           onInput={isEditable ? (e) => handleContentChange(e, 'html') : undefined}
+          onFocus={isEditable ? handleFocus : undefined}
+          onBlur={isEditable ? handleBlur : undefined}
+          data-placeholder="Start writing your content here..."
+          style={{
+            minHeight: isEditable ? '3rem' : 'auto'
+          }}
         />
       );
 
@@ -126,7 +306,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
           mb-8
         `.trim()}>
           <a
-            href={widget.props.link}
+            href={widget.props.link || '#'}
             target={widget.props.target}
             className={`
               inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300
@@ -134,6 +314,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
               ${widget.props.size === 'sm' ? 'px-6 py-3 text-sm' : 
                 widget.props.size === 'lg' ? 'px-10 py-5 text-lg' : 'px-8 py-4 text-base'}
               shadow-lg hover:shadow-xl
+              ${(!widget.props.label || widget.props.label.trim() === '') ? 'opacity-75' : ''}
             `.trim()}
             style={{
               backgroundColor: widget.props.background_color,
@@ -143,7 +324,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
                            widget.props.border_radius === 'sm' ? '0.5rem' : '0.75rem'
             }}
           >
-            {widget.props.label}
+            {widget.props.label || 'Button Text'}
             <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -158,13 +339,21 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
             height: `${widget.props.height}px`,
             backgroundColor: widget.props.background_color,
           }}
-          className="w-full"
-        />
+          className={`w-full ${isEditable ? 'relative' : ''}`}
+        >
+          {isEditable && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-xs text-gray-400 bg-white/90 px-2 py-1 rounded">
+                Spacer ({widget.props.height}px)
+              </span>
+            </div>
+          )}
+        </div>
       );
 
     case 'divider':
       return (
-        <div className="my-8 flex justify-center">
+        <div className="my-8 flex justify-center relative">
           <hr
             style={{
               borderStyle: widget.props.style,
@@ -175,25 +364,45 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
             }}
             className="border-0 max-w-md"
           />
+          {isEditable && (
+            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 pointer-events-none">
+              <span className="text-xs text-gray-400 bg-white/90 px-2 py-1 rounded">
+                Divider
+              </span>
+            </div>
+          )}
         </div>
       );
 
     case 'image':
+      const hasImage = widget.props.src && widget.props.src.trim() !== '';
+      
       return (
-        <div className="mb-8">
-          <img
-            src={widget.props.src}
-            alt={widget.props.alt}
-            className="max-w-full h-auto shadow-lg"
-            style={{
-              width: widget.props.width,
-              height: widget.props.height,
-              objectFit: widget.props.object_fit,
-              borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
-                           widget.props.border_radius === 'lg' ? '1rem' : 
-                           widget.props.border_radius === 'sm' ? '0.5rem' : '0'
-            }}
-          />
+        <div className="mb-8 relative">
+          {hasImage ? (
+            <img
+              src={widget.props.src}
+              alt={widget.props.alt}
+              className="max-w-full h-auto shadow-lg"
+              style={{
+                width: widget.props.width,
+                height: widget.props.height,
+                objectFit: widget.props.object_fit,
+                borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
+                             widget.props.border_radius === 'lg' ? '1rem' : 
+                             widget.props.border_radius === 'sm' ? '0.5rem' : '0'
+              }}
+            />
+          ) : isEditable ? (
+            <div className="w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="text-sm">Click to add an image</p>
+              </div>
+            </div>
+          ) : null}
         </div>
       );
 
@@ -204,7 +413,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange }) => {
 
 // === Main Preview Component ===
 const Preview = () => {
-  const { widgets, pages, currentPageId, updateWidget, initializeDemoData } = useCMSStore();
+  const { widgets, pages, currentPageId, updateWidget, initializeDemoData, deleteWidget, addWidget } = useCMSStore();
   const editorRef = useRef(null);
   const savedRangeRef = useRef(null);
   const [isFormattingPanelVisible, setIsFormattingPanelVisible] = useState(true);
@@ -296,7 +505,7 @@ const Preview = () => {
         </div>
       </header>
 
-      <div className="pt-24 pb-12 bg-red-400">
+      <div className="pt-24 pb-12">
         <div className="max-w-6xl mx-auto flex gap-8 px-4">
           {/* Main Content Area */}
           <main className={`${(!isPreviewMode && isFormattingPanelVisible) ? 'flex-1' : 'w-full max-w-4xl mx-auto'} transition-all duration-300`}>
@@ -328,38 +537,17 @@ const Preview = () => {
               >
                 {pageWidgets.length > 0 ? (
                   <div className="max-w-4xl mx-auto">
-                    {pageWidgets.map((widget) => (
-                      <div
+                    {pageWidgets.map((widget, index) => (
+                      <WidgetBlock
                         key={widget.id}
-                        className={`widget-container group relative ${!isPreviewMode ? 'hover:bg-blue-50/10' : ''}`}
-                        style={{
-                          marginTop: `${widget.layout.margin.top}px`,
-                          marginRight: `${widget.layout.margin.right}px`,
-                          marginBottom: `${widget.layout.margin.bottom}px`,
-                          marginLeft: `${widget.layout.margin.left}px`,
-                          paddingTop: `${widget.layout.padding.top}px`,
-                          paddingRight: `${widget.layout.padding.right}px`,
-                          paddingBottom: `${widget.layout.padding.bottom}px`,
-                          paddingLeft: `${widget.layout.padding.left}px`,
-                        }}
-                      >
-                        <WidgetRenderer
-                          widget={widget}
-                          isEditable={!isPreviewMode}
-                          onContentChange={handleWidgetContentChange}
-                        />
-                        
-                        {/* Enhanced Widget Overlay - only show in editor mode */}
-                        {!isPreviewMode && (
-                          <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-300/50 group-focus-within:border-blue-500/70 rounded-xl pointer-events-none transition-all duration-200 group-hover:shadow-lg group-focus-within:shadow-xl">
-                            <div className="absolute -top-3 left-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 transform -translate-y-2 group-hover:translate-y-0">
-                              <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs px-3 py-1 rounded-full shadow-lg font-medium">
-                                {widget.type}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                        widget={widget}
+                        index={index}
+                        currentPageId={currentPageId}
+                        isEditable={!isPreviewMode}
+                        onContentChange={handleWidgetContentChange}
+                        addWidget={addWidget}
+                        deleteWidget={deleteWidget}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -379,7 +567,10 @@ const Preview = () => {
                       }
                     </p>
                     {!isPreviewMode && (
-                      <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 hover:scale-105">
+                      <button 
+                        onClick={() => addWidget('richText', currentPageId)}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 hover:scale-105"
+                      >
                         Add Your First Widget
                       </button>
                     )}

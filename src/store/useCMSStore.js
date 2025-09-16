@@ -101,7 +101,7 @@ const useCMSStore = create(
       },
 
       // Widgets actions
-      addWidget: (type, pageId) => {
+      addWidget: (type, pageId, insertIndex = -1) => {
         const id = uuidv4();
         const newWidget = {
           id,
@@ -121,15 +121,23 @@ const useCMSStore = create(
           updated_at: new Date().toISOString()
         };
 
-        set((state) => ({
-          widgets: { ...state.widgets, [id]: newWidget },
-          pages: state.pages.map((page) =>
+        set((state) => {
+          const updatedPages = state.pages.map((page) =>
             page.id === pageId
-              ? { ...page, widgets: [...page.widgets, id] }
+              ? {
+                  ...page,
+                  widgets: insertIndex >= 0
+                    ? [...page.widgets.slice(0, insertIndex), id, ...page.widgets.slice(insertIndex)]
+                    : [...page.widgets, id]
+                }
               : page
-          ),
-          selectedWidgetId: id,
-        }));
+          );
+          return {
+            widgets: { ...state.widgets, [id]: newWidget },
+            pages: updatedPages,
+            selectedWidgetId: id,
+          };
+        });
 
         return id;
       },
@@ -141,6 +149,20 @@ const useCMSStore = create(
             [id]: { 
               ...state.widgets[id], 
               ...updates,
+              updated_at: new Date().toISOString()
+            },
+          },
+        }));
+      },
+
+      changeWidgetType: (id, newType) => {
+        set((state) => ({
+          widgets: {
+            ...state.widgets,
+            [id]: { 
+              ...state.widgets[id], 
+              type: newType,
+              props: getDefaultWidgetProps(newType),
               updated_at: new Date().toISOString()
             },
           },
@@ -340,12 +362,11 @@ const useCMSStore = create(
   )
 );
 
-// Helper function to get default widget props
 const getDefaultWidgetProps = (type) => {
   switch (type) {
     case 'richText':
       return { 
-        content: '<p>Click to edit text...</p>',
+        content: '', // Empty content initially
         text_align: 'left',
         font_size: 'base',
         line_height: 'relaxed'
@@ -361,7 +382,7 @@ const getDefaultWidgetProps = (type) => {
       };
     case 'button':
       return { 
-        label: 'Click me', 
+        label: 'Button Text', // More neutral placeholder
         link: '', 
         target: '_self',
         variant: 'primary',
@@ -375,7 +396,7 @@ const getDefaultWidgetProps = (type) => {
     case 'heading':
       return { 
         level: 2, 
-        text: 'Heading', 
+        text: '', // Empty initially
         alignment: 'left',
         color: '#1f2937',
         font_size: '2xl',

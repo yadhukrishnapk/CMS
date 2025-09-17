@@ -15,13 +15,34 @@ const availableWidgetTypes = [
 ];
 
 // === Widget Type Selector ===
-const WidgetTypeSelector = ({ onSelect, currentType }) => {
+const WidgetTypeSelector = ({ onSelect, currentType, onClose }) => {
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
+
   return (
-    <div className="absolute top-full left-0 mt-2 z-50 bg-white shadow-xl rounded-lg border border-gray-200 py-1 w-48">
+    <div 
+      ref={dropdownRef}
+      className="absolute top-full left-0 mt-2 z-50 bg-white shadow-xl rounded-lg border border-gray-200 py-1 w-48"
+    >
       {availableWidgetTypes.map(({ value, label }) => (
         <button
           key={value}
-          onClick={() => onSelect(value)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(value);
+          }}
           className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
             value === currentType ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
           }`}
@@ -34,9 +55,10 @@ const WidgetTypeSelector = ({ onSelect, currentType }) => {
 };
 
 // === Widget Block ===
-const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget, onSelect }) => {
+const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget, onSelect, editorRef }) => {
   const blockRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { changeWidgetType } = useCMSStore();
 
   const currentTypeConfig = availableWidgetTypes.find((t) => t.value === widget.type);
@@ -44,29 +66,48 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
 
   const handleTypeChange = (newType) => {
     changeWidgetType(widget.id, newType);
-    setIsOpen(false);
+    setIsDropdownOpen(false);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (blockRef.current && !blockRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+  const handleMouseEnter = () => {
+    if (isEditable) {
+      setIsHovered(true);
     }
+  };
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+  const handleMouseLeave = () => {
+    if (isEditable && !isDropdownOpen) {
+      setIsHovered(false);
+    }
+  };
+
+  const handleDropdownClose = () => {
+    setIsDropdownOpen(false);
+    setIsHovered(false);
+  };
+
+  const handleTypeButtonClick = (e) => {
+    e.stopPropagation();
+    setIsDropdownOpen(!isDropdownOpen);
+    setIsHovered(true); // Keep hovered state when dropdown is open
+  };
+
+  const handleAddWidget = (position) => {
+    const insertIndex = position === 'above' ? index : index + 1;
+    addWidget('richText', currentPageId, insertIndex);
+  };
+
+  const handleDeleteWidget = (e) => {
+    e.stopPropagation();
+    deleteWidget(widget.id);
+  };
 
   return (
     <div
       ref={blockRef}
-      className={`widget-container group relative mb-4 rounded-xl ${!isEditable ? '' : 'hover:bg-pink-50/10'}`}
+      className={`widget-container relative mb-4 rounded-xl transition-all duration-200 ${
+        !isEditable ? '' : 'hover:bg-pink-50/10'
+      }`}
       style={{
         marginTop: `${widget.layout.margin.top}px`,
         marginRight: `${widget.layout.margin.right}px`,
@@ -77,35 +118,45 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
         paddingBottom: `${widget.layout.padding.bottom}px`,
         paddingLeft: `${widget.layout.padding.left}px`,
       }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <WidgetRenderer
         widget={widget}
         isEditable={isEditable}
         onContentChange={onContentChange}
         onSelect={onSelect}
+        editorRef={editorRef}
       />
 
-      {/* Edit Mode Controls */}
-      {isEditable && (
+      {/* Edit Mode Controls - Only show when hovered or dropdown is open */}
+      {isEditable && (isHovered || isDropdownOpen) && (
         <>
           {/* Widget Type Badge */}
           <button
-            onClick={() => setIsOpen((prev) => !prev)}
-            className="absolute -top-2 left-2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs px-2 py-1 rounded shadow-lg hover:shadow-md"
+            onClick={handleTypeButtonClick}
+            className="absolute -top-2 left-2 z-20 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs px-2 py-1 rounded shadow-lg hover:shadow-md transition-all duration-200"
             title="Change widget type"
           >
             {currentLabel}
           </button>
 
           {/* Widget Type Selector */}
-          {isOpen && (
-            <WidgetTypeSelector onSelect={handleTypeChange} currentType={widget.type} />
+          {isDropdownOpen && (
+            <WidgetTypeSelector 
+              onSelect={handleTypeChange} 
+              currentType={widget.type}
+              onClose={handleDropdownClose}
+            />
           )}
 
           {/* Top + Button */}
           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20">
             <button
-              onClick={() => addWidget('richText', currentPageId, index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddWidget('above');
+              }}
               className="bg-white border-2 border-pink-400 text-pink-600 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 font-bold text-sm"
               title="Insert new widget above"
             >
@@ -116,7 +167,10 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
           {/* Bottom + Button */}
           <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-20">
             <button
-              onClick={() => addWidget('richText', currentPageId, index + 1)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddWidget('below');
+              }}
               className="bg-white border-2 border-pink-400 text-pink-600 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 font-bold text-sm"
               title="Insert new widget below"
             >
@@ -127,19 +181,17 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
           {/* Delete Button */}
           <div className="absolute top-2 right-2 z-20">
             <button
-              onClick={() => deleteWidget(widget.id)}
+              onClick={handleDeleteWidget}
               className="bg-red-500/10 border border-red-300 text-red-600 rounded-full w-7 h-7 flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:bg-red-500/20 hover:scale-105 font-bold text-xs"
               title="Delete this widget"
             >
               ×
             </button>
           </div>
-        </>
-      )}
 
-      {/* Widget Overlay - only show in editor mode */}
-      {isEditable && (
-        <div className="absolute inset-0 border-2 border-pink-400/50 rounded-xl pointer-events-none transition-all duration-200" />
+          {/* Widget Overlay - only show when hovered */}
+          <div className="absolute inset-0 border-2 border-pink-400/50 rounded-xl pointer-events-none transition-all duration-200" />
+        </>
       )}
     </div>
   );
@@ -147,9 +199,19 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
 
 // === Widget Renderer ===
 // Enhanced WidgetRenderer component with better placeholders
-const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect , onUpdate }) => {
+const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect , onUpdate, editorRef }) => {
   const ref = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Set up editor reference for Rich Text widgets
+  useEffect(() => {
+    if (widget.type === 'richText' && ref.current && editorRef) {
+      // If this is a rich text widget, make sure it's included in the editor ref context
+      if (!editorRef.current) {
+        editorRef.current = ref.current.parentElement;
+      }
+    }
+  }, [widget.type, editorRef]);
 
   // Function to get current cursor position
   const getCursorPosition = (element) => {
@@ -208,12 +270,25 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect 
     // Update the content
     onContentChange(widget.id, newContent);
     
-    // Restore cursor position after React re-render
-    setTimeout(() => {
-      if (element && document.contains(element)) {
-        setCursorPosition(element, cursorPosition);
-      }
-    }, 0);
+    // For Rich Text widgets, we need to be more careful about cursor restoration
+    // since we're dealing with HTML content
+    if (type === 'html') {
+      // Use requestAnimationFrame to ensure DOM updates are complete
+      requestAnimationFrame(() => {
+        if (element && document.contains(element)) {
+          setCursorPosition(element, cursorPosition);
+          // Keep focus on the element
+          element.focus();
+        }
+      });
+    } else {
+      // For text-only widgets (like headings), use setTimeout
+      setTimeout(() => {
+        if (element && document.contains(element)) {
+          setCursorPosition(element, cursorPosition);
+        }
+      }, 0);
+    }
   };
 
   const handleFocus = (e) => {
@@ -274,6 +349,20 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect 
     case 'richText':
       const isEmpty = !widget.props.content || widget.props.content.trim() === '' || widget.props.content === '<p></p>';
       
+      // Use useEffect to set innerHTML only when necessary (not on every render)
+      useEffect(() => {
+        if (ref.current && isEmpty && isEditable) {
+          ref.current.innerHTML = '';
+        } else if (ref.current && widget.props.content && ref.current.innerHTML !== widget.props.content) {
+          // Only update if content actually changed to avoid destroying selections
+          const currentContent = ref.current.innerHTML;
+          const newContent = widget.props.content || '<p>Start writing...</p>';
+          if (currentContent !== newContent) {
+            ref.current.innerHTML = newContent;
+          }
+        }
+      }, [widget.props.content, isEmpty, isEditable]);
+      
       return (
         <div
           ref={ref}
@@ -290,9 +379,6 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect 
           `.trim()}
           contentEditable={isEditable}
           suppressContentEditableWarning={true}
-          dangerouslySetInnerHTML={{ 
-            __html: isEmpty && isEditable ? '' : (widget.props.content || '<p>Start writing...</p>')
-          }}
           onInput={isEditable ? (e) => handleContentChange(e, 'html') : undefined}
           onFocus={isEditable ? handleFocus : undefined}
           onBlur={isEditable ? handleBlur : undefined}
@@ -595,6 +681,7 @@ const Preview = () => {
                         deleteWidget={deleteWidget}
                         onSelect={selectWidget}
                         onUpdate={updateWidget}
+                        editorRef={editorRef}
                       />
                     ))}
                   </div>

@@ -213,7 +213,7 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
   // Background colors for highlighting
   const backgroundColors = [
     "#FBBF24", "#10B981", "#3B82F6", "#8B5CF6",
-    "#EF4444", "#F97316", "#EC4899", "#6B7280"
+    "#EF4444", "#F97316", "#EC4899", "#FFFFFF", 
   ];
 
   if (isButtonSelected) {

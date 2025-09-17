@@ -18,7 +18,9 @@ const useCMSStore = create(
 
       // Initialize demo data if no data exists
       initializeDemoData: () => {
-        if (!hasDemoData()) {
+        const state = get();
+        // Only initialize if we don't have any pages in the store
+        if (!state.pages || state.pages.length === 0) {
           const apiResponse = createDemoData();
           const extractedData = extractDataFromResponse(apiResponse);
           set({
@@ -30,10 +32,49 @@ const useCMSStore = create(
             settings: extractedData.settings,
             currentPageId: extractedData.pages[0]?.id || null,
           });
+          
+          // Force save to localStorage immediately after initialization
+          setTimeout(() => {
+            const newState = get();
+            localStorage.setItem('cms-storage', JSON.stringify({
+              state: {
+                pages: newState.pages,
+                widgets: newState.widgets,
+                media: newState.media,
+                links: newState.links,
+                users: newState.users,
+                settings: newState.settings,
+              },
+              version: 0,
+            }));
+          }, 100);
         }
       },
 
-      // Pages actions
+      // Enhanced save function that forces persistence
+      forceSave: () => {
+        const state = get();
+        const dataToSave = {
+          pages: state.pages,
+          widgets: state.widgets,
+          media: state.media,
+          links: state.links,
+          users: state.users,
+          settings: state.settings,
+        };
+        
+        try {
+          localStorage.setItem('cms-storage', JSON.stringify({
+            state: dataToSave,
+            version: 0,
+          }));
+          console.log('Data successfully saved to localStorage');
+        } catch (error) {
+          console.error('Failed to save data to localStorage:', error);
+        }
+      },
+
+      // Pages actions with enhanced persistence
       createPage: (title = 'New Page') => {
         const id = uuidv4();
         const slug = title.toLowerCase().replace(/\s+/g, '-');
@@ -66,6 +107,9 @@ const useCMSStore = create(
           pages: [...state.pages, newPage],
           currentPageId: id,
         }));
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
         return id;
       },
 
@@ -79,6 +123,9 @@ const useCMSStore = create(
             } : page
           ),
         }));
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
       deletePage: (id) => {
@@ -98,9 +145,12 @@ const useCMSStore = create(
           }
           return state;
         });
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
-      // Widgets actions
+      // Widgets actions with enhanced persistence
       addWidget: (type, pageId, insertIndex = -1) => {
         const id = uuidv4();
         const newWidget = {
@@ -139,6 +189,8 @@ const useCMSStore = create(
           };
         });
 
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
         return id;
       },
 
@@ -153,6 +205,9 @@ const useCMSStore = create(
             },
           },
         }));
+        
+        // Force save after state update - with a small delay for better UX during rapid updates
+        setTimeout(() => get().forceSave(), 100);
       },
 
       changeWidgetType: (id, newType) => {
@@ -167,6 +222,9 @@ const useCMSStore = create(
             },
           },
         }));
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
       deleteWidget: (id) => {
@@ -182,6 +240,9 @@ const useCMSStore = create(
             selectedWidgetId: state.selectedWidgetId === id ? null : state.selectedWidgetId,
           };
         });
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
       duplicateWidget: (id, pageId) => {
@@ -209,6 +270,8 @@ const useCMSStore = create(
           selectedWidgetId: newId,
         }));
 
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
         return newId;
       },
 
@@ -218,9 +281,12 @@ const useCMSStore = create(
             page.id === pageId ? { ...page, widgets: newOrder } : page
           ),
         }));
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
-      // Media actions
+      // Media actions with enhanced persistence
       addMedia: (file) => {
         const id = uuidv4();
         const url = URL.createObjectURL(file);
@@ -249,6 +315,8 @@ const useCMSStore = create(
           media: [...state.media, newMedia],
         }));
 
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
         return id;
       },
 
@@ -262,9 +330,12 @@ const useCMSStore = create(
             media: state.media.filter((m) => m.id !== id),
           };
         });
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
-      // Links actions
+      // Links actions with enhanced persistence
       addLink: (title, url, target = '_self') => {
         const id = uuidv4();
         const newLink = { 
@@ -285,6 +356,9 @@ const useCMSStore = create(
         set((state) => ({
           links: [...state.links, newLink],
         }));
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
         return id;
       },
 
@@ -298,21 +372,29 @@ const useCMSStore = create(
             } : link
           ),
         }));
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
       deleteLink: (id) => {
         set((state) => ({
           links: state.links.filter((link) => link.id !== id),
         }));
+        
+        // Force save after state update
+        setTimeout(() => get().forceSave(), 0);
       },
 
       // UI actions
       selectWidget: (id) => {
         set({ selectedWidgetId: id });
+        // No need to persist UI state
       },
 
       setCurrentPage: (id) => {
         set({ currentPageId: id });
+        // No need to persist UI state
       },
 
       // Utility actions
@@ -346,6 +428,26 @@ const useCMSStore = create(
           selectedWidgetId: null,
           currentPageId: null,
         });
+        
+        // Force save after import
+        setTimeout(() => get().forceSave(), 0);
+      },
+
+      // Clear all data (useful for debugging)
+      clearAllData: () => {
+        set({
+          pages: [],
+          widgets: {},
+          media: [],
+          links: [],
+          users: [],
+          settings: {},
+          selectedWidgetId: null,
+          currentPageId: null,
+        });
+        
+        // Clear localStorage
+        localStorage.removeItem('cms-storage');
       },
     }),
     {
@@ -358,6 +460,26 @@ const useCMSStore = create(
         users: state.users,
         settings: state.settings,
       }),
+      // Add additional persistence options for better reliability
+      serialize: (state) => JSON.stringify(state),
+      deserialize: (str) => {
+        try {
+          return JSON.parse(str);
+        } catch (error) {
+          console.error('Failed to deserialize localStorage data:', error);
+          return {};
+        }
+      },
+      // Handle storage events for cross-tab synchronization
+      onRehydrateStorage: () => {
+        return (state, error) => {
+          if (error) {
+            console.error('Failed to rehydrate state:', error);
+          } else {
+            console.log('State rehydrated successfully');
+          }
+        };
+      },
     }
   )
 );

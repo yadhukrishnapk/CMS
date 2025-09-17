@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import PagesList from './pages/PagesList';
-import EnhancedPageEditor from './pages/EnhancedPageEditor';
 import MediaLibrary from './pages/MediaLibrary';
 import LinkManager from './pages/LinkManager';
 import Preview from './pages/Preview';

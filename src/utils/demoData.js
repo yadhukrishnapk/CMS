@@ -6,6 +6,7 @@ export const createDemoData = () => {
   const demoWidget3Id = 'demo-widget-3';
   const demoWidget4Id = 'demo-widget-4';
   const demoWidget5Id = 'demo-widget-5';
+  const demoWidget6Id = 'demo-widget-6';
 
   return {
     success: true,
@@ -31,7 +32,7 @@ export const createDemoData = () => {
             keywords: ['cms', 'content', 'management'],
             seo_title: 'Enhanced CMS - Welcome'
           },
-          widgets: [demoWidget1Id, demoWidget2Id, demoWidget3Id, demoWidget4Id, demoWidget5Id],
+          widgets: [demoWidget1Id, demoWidget2Id, demoWidget3Id, demoWidget4Id, demoWidget5Id, demoWidget6Id ],
           settings: {
             layout: 'default',
             theme: 'light',
@@ -151,6 +152,30 @@ export const createDemoData = () => {
           layout: { 
             x: 0, 
             y: 4, 
+            width: 'auto', 
+            height: 'auto',
+            margin: { top: 16, right: 0, bottom: 16, left: 0 },
+            padding: { top: 0, right: 0, bottom: 0, left: 0 }
+          },
+          created_at: '2024-01-15T10:30:00Z',
+          updated_at: new Date().toISOString()
+        },
+        [demoWidget6Id]: {
+          id: demoWidget6Id,
+          type: 'image',
+          page_id: demoPageId,
+          order: 5,
+          props: {
+            src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&crop=entropy&cs=tinysrgb&q=80',
+            alt: 'Modern office workspace with laptops and creative tools',
+            width: '100%',
+            height: 'auto',
+            object_fit: 'cover',
+            border_radius: 'lg'
+          },
+          layout: { 
+            x: 0, 
+            y: 5, 
             width: 'auto', 
             height: 'auto',
             margin: { top: 16, right: 0, bottom: 16, left: 0 },

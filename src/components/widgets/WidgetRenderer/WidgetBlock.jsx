@@ -51,7 +51,7 @@ const WidgetTypeSelector = ({ onSelect, currentType, onClose }) => {
   );
 };
 
-const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget, onSelect, editorRef }) => {
+const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget, onSelect, onUpdate, editorRef }) => {
     const blockRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -122,6 +122,7 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
           isEditable={isEditable}
           onContentChange={onContentChange}
           onSelect={onSelect}
+          onUpdate={onUpdate}
           editorRef={editorRef}
         />
   

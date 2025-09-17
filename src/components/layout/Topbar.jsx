@@ -60,7 +60,7 @@ const Topbar = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-semibold text-gray-800">
-            {pageId ? 'Page Preview' : 'CMS Dashboard'}
+            {pageId ? 'Page Preview' : 'Contento Dashboard'}
           </h2>
         </div>
         

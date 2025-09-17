@@ -16,8 +16,8 @@ export const createDemoData = () => {
       pages: [
         {
           id: demoPageId,
-          title: 'Welcome to Your Enhanced CMS',
-          slug: 'welcome-to-your-enhanced-cms',
+          title: 'Welcome to Your Contento',
+          slug: 'welcome-to-your-contento',
           status: 'published',
           created_at: '2024-01-15T10:30:00Z',
           updated_at: new Date().toISOString(),
@@ -48,7 +48,7 @@ export const createDemoData = () => {
           order: 0,
           props: {
             level: 1,
-            text: 'Welcome to Your Enhanced CMS!',
+            text: 'Welcome to Your Contents!',
             alignment: 'center',
             color: '#1f2937',
             font_size: '3xl',

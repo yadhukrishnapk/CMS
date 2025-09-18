@@ -11,7 +11,6 @@ A modern, ReactBricks-inspired Content Management System built with React, Vite,
 - **Widget reordering** with visual cues
 
 ### 🧩 **Enhanced Widget System**
-- **Rich Text Editor** with React Quill
 - **Image Widget** with URL input and dimensions
 - **Button Widget** with link management
 - **Heading Widget** with levels and alignment
@@ -39,7 +38,6 @@ A modern, ReactBricks-inspired Content Management System built with React, Vite,
 - **React Router** for navigation
 - **Zustand** for state management with persistence
 - **dnd-kit** for advanced drag and drop functionality
-- **React Quill** for rich text editing
 - **Tailwind CSS** for modern styling
 - **UUID** for unique IDs
 - **IndexedDB** support for media storage

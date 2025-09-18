@@ -5,14 +5,24 @@ import FormattingPanel from "../assets/FormattingPanel";
 import WidgetBlock from "../components/widgets/WidgetRenderer/WidgetBlock";
 
 const Preview = () => {
-  const { widgets, pages, currentPageId, updateWidget, initializeDemoData, deleteWidget, addWidget, selectWidget } = useCMSStore();
+  const {
+    widgets,
+    pages,
+    currentPageId,
+    updateWidget,
+    initializeDemoData,
+    deleteWidget,
+    addWidget,
+    selectWidget,
+  } = useCMSStore();
   const editorRef = useRef(null);
   const savedRangeRef = useRef(null);
-  const [isFormattingPanelVisible, setIsFormattingPanelVisible] = useState(true);
-  
+  const [isFormattingPanelVisible, setIsFormattingPanelVisible] =
+    useState(true);
+
   // Get current location to determine if we're in preview mode
   const location = useLocation();
-  const isPreviewMode = location.pathname.startsWith('/preview/');
+  const isPreviewMode = location.pathname.startsWith("/preview/");
 
   // Initialize demo data on mount
   useEffect(() => {
@@ -20,22 +30,25 @@ const Preview = () => {
   }, [initializeDemoData]);
 
   // Get current page and its widgets
-  const currentPage = pages.find(page => page.id === currentPageId) || pages[0];
-  const pageWidgets = currentPage ? currentPage.widgets.map(widgetId => widgets[widgetId]).filter(Boolean) : [];
+  const currentPage =
+    pages.find((page) => page.id === currentPageId) || pages[0];
+  const pageWidgets = currentPage
+    ? currentPage.widgets.map((widgetId) => widgets[widgetId]).filter(Boolean)
+    : [];
 
   const handleWidgetContentChange = (widgetId, newContent) => {
     // Don't allow content changes in preview mode
     if (isPreviewMode) return;
-    
+
     const widget = widgets[widgetId];
     if (widget) {
-      if (widget.type === 'richText') {
+      if (widget.type === "richText") {
         updateWidget(widgetId, {
-          props: { ...widget.props, content: newContent }
+          props: { ...widget.props, content: newContent },
         });
-      } else if (widget.type === 'heading') {
+      } else if (widget.type === "heading") {
         updateWidget(widgetId, {
-          props: { ...widget.props, text: newContent }
+          props: { ...widget.props, text: newContent },
         });
       }
     }
@@ -66,31 +79,38 @@ const Preview = () => {
             <div>
               <h1 className="text-lg font-bold text-gray-900">Contento</h1>
               <p className="text-xs text-gray-500">
-                {isPreviewMode ? 'Preview Mode' : 'Live Preview'}
+                {isPreviewMode ? "Preview Mode" : "Live Preview"}
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {/* Only show formatting panel toggle in editor mode */}
             {!isPreviewMode && (
               <button
-                onClick={() => setIsFormattingPanelVisible(!isFormattingPanelVisible)}
+                onClick={() =>
+                  setIsFormattingPanelVisible(!isFormattingPanelVisible)
+                }
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium transition-colors duration-200"
               >
-                {isFormattingPanelVisible ? 'Hide' : 'Show'} Tools
+                {isFormattingPanelVisible ? "Hide" : "Show"} Tools
               </button>
             )}
             <div className="flex items-center space-x-2">
-              <span className={`px-3 py-1 text-sm font-medium rounded-full border ${
-                isPreviewMode 
-                  ? 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border-blue-200'
-                  : 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200'
-              }`}>
-                {isPreviewMode ? 'Preview' : currentPage.status}
+              <span
+                className={`px-3 py-1 text-sm font-medium rounded-full border ${
+                  isPreviewMode
+                    ? "bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border-blue-200"
+                    : "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200"
+                }`}
+              >
+                {isPreviewMode ? "Preview" : currentPage.status}
               </span>
               {!isPreviewMode && (
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Auto-save active"></div>
+                <div
+                  className="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                  title="Auto-save active"
+                ></div>
               )}
             </div>
           </div>
@@ -100,31 +120,46 @@ const Preview = () => {
       <div className="pt-24 pb-12 bg-red-100">
         <div className="max-w-6xl mx-auto flex gap-8 px-4 ">
           {/* Main Content Area */}
-          <main className={`${(!isPreviewMode && isFormattingPanelVisible) ? 'flex-1' : 'w-full max-w-4xl mx-auto'} transition-all duration-300`}>
+          <main
+            className={`${
+              !isPreviewMode && isFormattingPanelVisible
+                ? "flex-1"
+                : "w-full max-w-4xl mx-auto"
+            } transition-all duration-300`}
+          >
             <div className="bg-white shadow-2xl rounded-3xl border border-gray-100 overflow-hidden -ml-48">
               {/* Page Header */}
               <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentPage.title}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {currentPage.title}
+                </h2>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <span>By {currentPage.author.name}</span>
                   <span>•</span>
-                  <span>Updated {new Date(currentPage.updated_at).toLocaleDateString()}</span>
+                  <span>
+                    Updated{" "}
+                    {new Date(currentPage.updated_at).toLocaleDateString()}
+                  </span>
                   <span>•</span>
-                  <span className="font-mono bg-gray-200 px-2 py-1 rounded text-xs">/{currentPage.slug}</span>
+                  <span className="font-mono bg-gray-200 px-2 py-1 rounded text-xs">
+                    /{currentPage.slug}
+                  </span>
                   {isPreviewMode && (
                     <>
                       <span>•</span>
-                      <span className="text-blue-600 font-medium">Read-only Preview</span>
+                      <span className="text-blue-600 font-medium">
+                        Read-only Preview
+                      </span>
                     </>
                   )}
                 </div>
               </div>
 
               {/* Content Area */}
-              <div 
+              <div
                 ref={editorRef}
-                className={`px-8 py-12 lg:px-16 lg:py-16 min-h-[800px] transition-all duration-300 ${
-                  !isPreviewMode ? 'focus-within:bg-blue-50/20' : ''
+                className={`px-8 py-12 lg:px-16 lg:py-16 min-h-[800px] max-h-[calc(100vh-200px)] overflow-y-auto transition-all duration-300 ${
+                  !isPreviewMode ? "focus-within:bg-blue-50/20" : ""
                 }`}
               >
                 {pageWidgets.length > 0 ? (
@@ -148,22 +183,33 @@ const Preview = () => {
                 ) : (
                   <div className="text-center py-24 max-w-2xl mx-auto">
                     <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center">
-                      <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <svg
+                        className="w-12 h-12 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                      {isPreviewMode ? 'No Content Available' : 'Ready to Create'}
+                      {isPreviewMode
+                        ? "No Content Available"
+                        : "Ready to Create"}
                     </h3>
                     <p className="text-gray-600 text-lg mb-6">
-                      {isPreviewMode 
-                        ? 'This page doesn\'t have any content yet.' 
-                        : 'Start building your page by adding content widgets.'
-                      }
+                      {isPreviewMode
+                        ? "This page doesn't have any content yet."
+                        : "Start building your page by adding content widgets."}
                     </p>
                     {!isPreviewMode && (
-                      <button 
-                        onClick={() => addWidget('richText', currentPageId)}
+                      <button
+                        onClick={() => addWidget("richText", currentPageId)}
                         className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 hover:scale-105"
                       >
                         Add Your First Widget
@@ -178,30 +224,51 @@ const Preview = () => {
           {/* Floating Formatting Panel - only show in editor mode */}
           {!isPreviewMode && isFormattingPanelVisible && (
             <aside className="w-80 sticky top-28 h-fit -mr-48">
-              <FormattingPanel savedRangeRef={savedRangeRef} editorRef={editorRef} />
-              
+              <FormattingPanel
+                savedRangeRef={savedRangeRef}
+                editorRef={editorRef}
+              />
+
               {/* Enhanced Page Stats */}
               <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 p-6 shadow-xl">
                 <h3 className="font-bold text-gray-800 mb-4 flex items-center">
                   <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center mr-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
                     </svg>
                   </div>
                   Page Insights
                 </h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                    <span className="text-gray-600 font-medium">Content Blocks</span>
-                    <span className="text-blue-600 font-bold text-lg">{pageWidgets.length}</span>
+                    <span className="text-gray-600 font-medium">
+                      Content Blocks
+                    </span>
+                    <span className="text-blue-600 font-bold text-lg">
+                      {pageWidgets.length}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
                     <span className="text-gray-600 font-medium">Status</span>
-                    <span className="text-green-600 font-bold capitalize">{currentPage.status}</span>
+                    <span className="text-green-600 font-bold capitalize">
+                      {currentPage.status}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
                     <span className="text-gray-600 font-medium">Author</span>
-                    <span className="text-purple-600 font-bold">{currentPage.author.name}</span>
+                    <span className="text-purple-600 font-bold">
+                      {currentPage.author.name}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -215,8 +282,12 @@ const Preview = () => {
         <div className="fixed bottom-6 right-6 bg-white/90 backdrop-blur-sm shadow-2xl rounded-2xl px-6 py-4 border border-gray-100">
           <div className="flex items-center space-x-3">
             <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse shadow-lg"></div>
-            <span className="text-sm font-medium text-gray-700">Auto-saved</span>
-            <span className="text-xs text-gray-500">{new Date().toLocaleTimeString()}</span>
+            <span className="text-sm font-medium text-gray-700">
+              Auto-saved
+            </span>
+            <span className="text-xs text-gray-500">
+              {new Date().toLocaleTimeString()}
+            </span>
           </div>
         </div>
       )}

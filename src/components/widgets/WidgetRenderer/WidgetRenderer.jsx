@@ -5,6 +5,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect,
     const ref = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const isEmpty = widget.type === 'richText' && (!widget.props.content || widget.props.content.trim() === '' || widget.props.content === '<p></p>');
+    const isHeadingEmpty = widget.type === 'heading' && (!widget.props.text || widget.props.text.trim() === '' || widget.props.text === '<p></p>');
     
     // Handle rich text content updates
     useEffect(() => {
@@ -21,11 +22,27 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect,
         }
       }
     }, [widget.type, widget.props.content, isEmpty, isEditable]);
-  
-    // Set up editor reference for Rich Text widgets
+
+    // Handle heading content updates - similar to rich text
     useEffect(() => {
-      if (widget.type === 'richText' && ref.current && editorRef) {
-        // If this is a rich text widget, make sure it's included in the editor ref context
+      if (widget.type === 'heading' && ref.current) {
+        if (isHeadingEmpty && isEditable) {
+          ref.current.innerHTML = '';
+        } else if (widget.props.text && ref.current.innerHTML !== widget.props.text) {
+          // Only update if content actually changed to avoid destroying selections
+          const currentContent = ref.current.innerHTML;
+          const newContent = widget.props.text || '';
+          if (currentContent !== newContent) {
+            ref.current.innerHTML = newContent;
+          }
+        }
+      }
+    }, [widget.type, widget.props.text, isHeadingEmpty, isEditable]);
+  
+    // Set up editor reference for Rich Text and Heading widgets
+    useEffect(() => {
+      if ((widget.type === 'richText' || widget.type === 'heading') && ref.current && editorRef) {
+        // If this is a rich text or heading widget, make sure it's included in the editor ref context
         if (!editorRef.current) {
           editorRef.current = ref.current.parentElement;
         }
@@ -89,7 +106,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect,
       // Update the content
       onContentChange(widget.id, newContent);
       
-      // For Rich Text widgets, we need to be more careful about cursor restoration
+      // For both Rich Text and Heading widgets, we need to be careful about cursor restoration
       // since we're dealing with HTML content
       if (type === 'html') {
         // Use requestAnimationFrame to ensure DOM updates are complete
@@ -101,7 +118,7 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect,
           }
         });
       } else {
-        // For text-only widgets (like headings), use setTimeout
+        // For text-only widgets, use setTimeout
         setTimeout(() => {
           if (element && document.contains(element)) {
             setCursorPosition(element, cursorPosition);
@@ -142,27 +159,29 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect,
           ${widget.props.alignment === 'center' ? 'text-center' : 
             widget.props.alignment === 'right' ? 'text-right' : 'text-left'}
           mb-6 leading-tight tracking-tight
-          ${!widget.props.text || widget.props.text.trim() === '' ? 'empty-placeholder' : ''}
+          ${isHeadingEmpty ? 'empty-placeholder' : ''}
         `.trim();
         
         return React.createElement(
           HeadingTag,
           {
+            ref: ref,
             className: headingClasses,
             style: { 
               color: widget.props.color,
-              ...((!widget.props.text || widget.props.text.trim() === '') && isEditable ? {
+              ...(isHeadingEmpty && isEditable ? {
                 position: 'relative'
               } : {})
             },
             contentEditable: isEditable,
             suppressContentEditableWarning: true,
-            onInput: isEditable ? (e) => handleContentChange(e, 'text') : undefined,
+            onInput: isEditable ? (e) => handleContentChange(e, 'html') : undefined, // Changed from 'text' to 'html'
             onFocus: isEditable ? handleFocus : undefined,
             onBlur: isEditable ? handleBlur : undefined,
-            'data-placeholder': 'Enter heading text...'
+            'data-placeholder': 'Enter heading text...',
+            dangerouslySetInnerHTML: !isEditable && widget.props.text ? { __html: widget.props.text } : undefined
           },
-          widget.props.text || (isEditable ? '' : 'Heading')
+          isEditable ? null : undefined // Let dangerouslySetInnerHTML handle content for non-editable, or let contentEditable handle it for editable
         );
   
       case 'richText':

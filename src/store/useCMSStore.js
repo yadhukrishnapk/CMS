@@ -44,10 +44,16 @@ const useCMSStore = create(
                 links: newState.links,
                 users: newState.users,
                 settings: newState.settings,
+                currentPageId: newState.currentPageId, // Add this line
               },
               version: 0,
             }));
           }, 100);
+        } else {
+          // If pages exist but currentPageId is null, set it to the first page
+          if (!state.currentPageId && state.pages.length > 0) {
+            set({ currentPageId: state.pages[0].id });
+          }
         }
       },
 
@@ -61,6 +67,7 @@ const useCMSStore = create(
           links: state.links,
           users: state.users,
           settings: state.settings,
+          currentPageId: state.currentPageId, // Add this line
         };
         
         try {
@@ -137,10 +144,13 @@ const useCMSStore = create(
             page.widgets.forEach((widgetId) => {
               delete newWidgets[widgetId];
             });
+            const remainingPages = state.pages.filter((p) => p.id !== id);
             return {
-              pages: state.pages.filter((p) => p.id !== id),
+              pages: remainingPages,
               widgets: newWidgets,
-              currentPageId: state.currentPageId === id ? null : state.currentPageId,
+              currentPageId: state.currentPageId === id ? 
+                (remainingPages.length > 0 ? remainingPages[0].id : null) : 
+                state.currentPageId,
             };
           }
           return state;
@@ -152,11 +162,20 @@ const useCMSStore = create(
 
       // Widgets actions with enhanced persistence
       addWidget: (type, pageId, insertIndex = -1) => {
+        const state = get();
+        // Use the current pageId from state if not provided or if provided pageId is null/undefined
+        const targetPageId = pageId || state.currentPageId;
+        
+        if (!targetPageId) {
+          console.error('No page ID available for adding widget');
+          return null;
+        }
+
         const id = uuidv4();
         const newWidget = {
           id,
           type,
-          page_id: pageId,
+          page_id: targetPageId,
           order: 0,
           props: getDefaultWidgetProps(type),
           layout: { 
@@ -173,7 +192,7 @@ const useCMSStore = create(
 
         set((state) => {
           const updatedPages = state.pages.map((page) =>
-            page.id === pageId
+            page.id === targetPageId
               ? {
                   ...page,
                   widgets: insertIndex >= 0
@@ -394,7 +413,8 @@ const useCMSStore = create(
 
       setCurrentPage: (id) => {
         set({ currentPageId: id });
-        // No need to persist UI state
+        // Save current page ID for persistence across refreshes
+        setTimeout(() => get().forceSave(), 0);
       },
 
       // Utility actions
@@ -426,7 +446,7 @@ const useCMSStore = create(
           users: extractedData.users,
           settings: extractedData.settings,
           selectedWidgetId: null,
-          currentPageId: null,
+          currentPageId: extractedData.pages[0]?.id || null,
         });
         
         // Force save after import
@@ -459,6 +479,7 @@ const useCMSStore = create(
         links: state.links,
         users: state.users,
         settings: state.settings,
+        currentPageId: state.currentPageId, // Add this line to persist currentPageId
       }),
       // Add additional persistence options for better reliability
       serialize: (state) => JSON.stringify(state),
@@ -477,6 +498,11 @@ const useCMSStore = create(
             console.error('Failed to rehydrate state:', error);
           } else {
             console.log('State rehydrated successfully');
+            // Ensure currentPageId is set after rehydration
+            if (state && state.pages && state.pages.length > 0 && !state.currentPageId) {
+              const store = useCMSStore.getState();
+              store.setCurrentPage(state.pages[0].id);
+            }
           }
         };
       },

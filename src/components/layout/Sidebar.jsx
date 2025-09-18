@@ -6,8 +6,8 @@ const Sidebar = () => {
 
   const navItems = [
     { path: "/pages", label: "Pages", icon: "📄" },
-    { path: "/media", label: "Media", icon: "🖼️" },
-    { path: "/links", label: "Links", icon: "🔗" },
+    // { path: "/media", label: "Media", icon: "🖼️" },
+    // { path: "/links", label: "Links", icon: "🔗" },
   ];
 
   return (

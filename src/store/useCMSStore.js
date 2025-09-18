@@ -15,6 +15,8 @@ const useCMSStore = create(
       settings: {},
       selectedWidgetId: null,
       currentPageId: null,
+      showTemplateSelector: false,
+      insertPosition: null,
 
       // Initialize demo data if no data exists
       initializeDemoData: () => {
@@ -55,6 +57,14 @@ const useCMSStore = create(
             set({ currentPageId: state.pages[0].id });
           }
         }
+      },
+
+      setShowTemplateSelector: (show, position = null) => {
+        set({ 
+          showTemplateSelector: show, 
+          insertPosition: position,
+          selectedWidgetId: show ? null : get().selectedWidgetId
+        });
       },
 
       // Enhanced save function that forces persistence

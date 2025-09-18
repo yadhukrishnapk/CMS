@@ -1,13 +1,13 @@
 import React, { useRef, useState, useEffect } from "react";
-import WidgetRenderer from "./WidgetRenderer";
 import useCMSStore from "../../../store/useCMSStore";
 import WidgetTypeSelector,{availableWidgetTypes} from "./WidgetTypeSelector";
+import WidgetRenderer from "./WidgetRenderer";
 
 const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange, addWidget, deleteWidget, onSelect, onUpdate, editorRef }) => {
     const blockRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const { changeWidgetType } = useCMSStore();
+    const { changeWidgetType, setShowTemplateSelector } = useCMSStore();
   
     const currentTypeConfig = availableWidgetTypes.find((t) => t.value === widget.type);
     const currentLabel = currentTypeConfig ? currentTypeConfig.label : widget.type;
@@ -42,7 +42,7 @@ const WidgetBlock = ({ widget, index, currentPageId, isEditable, onContentChange
   
     const handleAddWidget = (position) => {
       const insertIndex = position === 'above' ? index : index + 1;
-      addWidget('richText', currentPageId, insertIndex);
+      setShowTemplateSelector(true, { pageId: currentPageId, insertIndex });
     };
   
     const handleDeleteWidget = (e) => {

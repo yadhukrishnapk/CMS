@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 
 export const availableWidgetTypes = [
     { value: "heading", label: "Heading" },
-    { value: "richText", label: "Rich Text" },
+    { value: "richText", label: "Text" },
     { value: "image", label: "Image" },
     { value: "button", label: "Button" },
     { value: "spacer", label: "Spacer" },

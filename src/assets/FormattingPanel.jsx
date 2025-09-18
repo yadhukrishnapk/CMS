@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useCMSStore from "../store/useCMSStore";
+import { availableWidgetTypes } from "../components/widgets/WidgetRenderer/WidgetTypeSelector";
+import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview } from "../components/widgets/WidgetRenderer/WidgetPreview";
 
 // Button Formatting Panel Component
 const ButtonFormattingPanel = ({ widgetId }) => {
@@ -121,7 +123,14 @@ const ButtonFormattingPanel = ({ widgetId }) => {
 
 const FormattingPanel = ({ savedRangeRef, editorRef }) => {
   const [selectedText, setSelectedText] = useState("");
-  const { widgets, selectedWidgetId } = useCMSStore();
+  const { 
+    widgets, 
+    selectedWidgetId, 
+    showTemplateSelector, 
+    insertPosition, 
+    setShowTemplateSelector,
+    addWidget 
+  } = useCMSStore();
   const selectedWidget = selectedWidgetId ? widgets[selectedWidgetId] : null;
   const isButtonSelected = selectedWidget?.type === 'button';
 
@@ -216,10 +225,63 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
     "#EF4444", "#F97316", "#EC4899", "#FFFFFF", 
   ];
 
+  // Widget preview components mapping
+  const widgetPreviewComponents = {
+    richText: RichTextPreview,
+    image: ImagePreview,
+    button: ButtonPreview,
+    heading: HeadingPreview,
+    spacer: SpacerPreview,
+    divider: DividerPreview,
+  };
+
   if (isButtonSelected) {
     return (
       <div className="bg-white shadow-xl rounded-2xl p-6 w-80 border border-gray-100 backdrop-blur-sm bg-white/95">
         <ButtonFormattingPanel widgetId={selectedWidgetId} />
+      </div>
+    );
+  }
+
+  if (showTemplateSelector) {
+    return (
+      <div className="bg-white shadow-xl rounded-2xl p-6 w-80 border border-gray-100 backdrop-blur-sm bg-white/95">
+        <h3 className="font-bold text-gray-800 mb-4 flex items-center text-lg">
+          <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          Add New Widget
+        </h3>
+        <div className="grid grid-cols-2 gap-3 mb-4 max-h-64 overflow-y-auto">
+          {availableWidgetTypes.map((typeConfig) => {
+            const PreviewComponent = widgetPreviewComponents[typeConfig.value];
+            return (
+              <button
+                key={typeConfig.value}
+                onClick={() => {
+                  addWidget(typeConfig.value, insertPosition.pageId, insertPosition.insertIndex);
+                  setShowTemplateSelector(false);
+                }}
+                className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors flex items-center space-x-3 text-left"
+              >
+                <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {PreviewComponent && <PreviewComponent />}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-sm truncate">{typeConfig.label}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => setShowTemplateSelector(false)}
+          className="w-full px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm"
+        >
+          Cancel
+        </button>
       </div>
     );
   }

@@ -13,6 +13,10 @@ const ImageWidget = ({ widget, isEditable, onContentChange, onSelect, onUpdate, 
 
   const hasImage = widget.props.src && widget.props.src.trim() !== '';
 
+  // Fixed dimensions for the image container
+  const FIXED_WIDTH = '100%'; // Full width of the parent container
+  const FIXED_HEIGHT = '400px'; // Fixed height for consistency
+
   return (
     <>
       <div 
@@ -27,15 +31,15 @@ const ImageWidget = ({ widget, isEditable, onContentChange, onSelect, onUpdate, 
         }}
       >
         {hasImage ? (
-          <div className="relative">
+          <div className="relative flex items-center justify-center w-full" style={{ height: FIXED_HEIGHT }}>
             <img
               src={widget.props.src}
               alt={widget.props.alt || 'Image'}
-              className="max-w-full h-auto shadow-lg"
+              className="shadow-lg"
               style={{
-                width: widget.props.width || '100%',
-                height: widget.props.height || 'auto',
-                objectFit: widget.props.object_fit || 'cover',
+                width: FIXED_WIDTH,
+                height: FIXED_HEIGHT,
+                objectFit: widget.props.object_fit || 'cover', // Use cover to fill, maintain aspect ratio
                 borderRadius: widget.props.border_radius === 'full' ? '9999px' : 
                             widget.props.border_radius === 'lg' ? '1rem' : 
                             widget.props.border_radius === 'sm' ? '0.5rem' : '0',
@@ -50,7 +54,10 @@ const ImageWidget = ({ widget, isEditable, onContentChange, onSelect, onUpdate, 
             )}
           </div>
         ) : isEditable ? (
-          <div className="w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-gray-400 transition-colors">
+          <div 
+            className="w-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-gray-400 transition-colors"
+            style={{ height: FIXED_HEIGHT }}
+          >
             <div className="text-center text-gray-500">
               <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -59,7 +66,10 @@ const ImageWidget = ({ widget, isEditable, onContentChange, onSelect, onUpdate, 
             </div>
           </div>
         ) : (
-          <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div 
+            className="w-full bg-gray-100 rounded-lg flex items-center justify-center"
+            style={{ height: FIXED_HEIGHT }}
+          >
             <span className="text-gray-400 text-sm">No image available</span>
           </div>
         )}

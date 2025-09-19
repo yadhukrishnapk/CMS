@@ -507,7 +507,7 @@ const useCMSStore = create(
           if (error) {
             console.error('Failed to rehydrate state:', error);
           } else {
-            console.log('State rehydrated successfully');
+            // console.log('State rehydrated successfully');
             // Ensure currentPageId is set after rehydration
             if (state && state.pages && state.pages.length > 0 && !state.currentPageId) {
               const store = useCMSStore.getState();

@@ -20,16 +20,77 @@ const Topbar = () => {
   };
 
   const handleExport = () => {
-    const data = exportData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'cms-export.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      // Get the current data from localStorage directly
+      const storedData = localStorage.getItem('cms-storage');
+      
+      if (!storedData) {
+        alert('No data found in localStorage to export');
+        return;
+      }
+
+      const parsedData = JSON.parse(storedData);
+      
+      // Structure the export to match your backend API response format
+      const exportResponse = {
+        success: true,
+        message: "Data exported successfully",
+        timestamp: new Date().toISOString(),
+        version: "1.0.0",
+        data: {
+          pages: parsedData.state.pages || [],
+          widgets: parsedData.state.widgets || {},
+          media: parsedData.state.media || [],
+          links: parsedData.state.links || [],
+          users: parsedData.state.users || [],
+          settings: parsedData.state.settings || {}
+        },
+        pagination: {
+          current_page: 1,
+          total_pages: 1,
+          total_items: parsedData.state.pages?.length || 0,
+          items_per_page: 10
+        },
+        meta: {
+          api_version: 'v1',
+          request_id: 'req_' + Math.random().toString(36).substr(2, 9),
+          response_time: '0ms'
+        }
+      };
+
+      console.log('Export JSON string preview:');
+      console.log(JSON.stringify(exportResponse, null, 2).substring(0, 1000) + '...');
+      console.log('===============================');
+      
+      // Create properly formatted JSON string
+      const jsonString = JSON.stringify(exportResponse, null, 2);
+      
+      // Create and download the file with proper MIME type
+      const blob = new Blob([jsonString], {
+        type: 'application/json;charset=utf-8',
+      });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cms-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a); // Ensure element is in DOM
+      a.click();
+      document.body.removeChild(a); // Clean up
+      URL.revokeObjectURL(url);
+      
+      // Show a preview of the widgets data in the alert
+      const widgetCount = Object.keys(exportResponse.data.widgets || {}).length;
+      const pageCount = (exportResponse.data.pages || []).length;
+      const mediaCount = (exportResponse.data.media || []).length;
+      const linkCount = (exportResponse.data.links || []).length;
+      
+      alert(`✅ Data exported successfully as JSON!\n\n📊 Export Summary:\n• Pages: ${pageCount}\n• Widgets: ${widgetCount}\n• Media: ${mediaCount}\n• Links: ${linkCount}\n\n🔍 Check browser console for detailed data inspection\n📁 File saved as: cms-export-${new Date().toISOString().split('T')[0]}.json`);
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('❌ Error exporting data: ' + error.message);
+    }
   };
 
   const handleImport = () => {
@@ -71,13 +132,6 @@ const Topbar = () => {
           >
             Save
           </button>
-          
-          {/* <button
-            onClick={handlePreview}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Preview
-          </button> */}
           
           <button
             onClick={handleExport}

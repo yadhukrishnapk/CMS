@@ -3,6 +3,163 @@ import useCMSStore from "../store/useCMSStore";
 import { availableWidgetTypes } from "../components/widgets/WidgetRenderer/WidgetTypeSelector";
 import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview } from "../components/widgets/WidgetRenderer/WidgetPreview";
 
+
+// Web Page Interface Formatting Panel Component
+const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
+  const { widgets, updateWidget } = useCMSStore();
+  const widget = widgets[widgetId];
+
+  if (!widget || widget.type !== 'webPageInterface') return null;
+
+  const { props } = widget;
+
+  const handleUpdate = (updates) => {
+    updateWidget(widgetId, { props: { ...props, ...updates } });
+  };
+
+  const predefinedColors = ['#EC4899', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+  
+  const predefinedGradients = [
+    { name: 'Pink Purple', value: "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)" },
+    { name: 'Blue Green', value: "linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 50%, #ECFDF5 100%)" },
+    { name: 'Yellow Orange', value: "linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 50%, #FEF3C7 100%)" },
+    { name: 'Red Pink', value: "linear-gradient(135deg, #FEF2F2 0%, #FFFFFF 50%, #FECACA 100%)" },
+  ];
+
+  return (
+    <>
+      <h3 className="font-bold text-gray-800 mb-4 flex items-center text-lg">
+        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        Web Page Settings
+      </h3>
+
+      {/* Content Section */}
+      <div className="mb-6">
+        <h4 className="font-semibold text-gray-700 mb-3">Content</h4>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+          <input
+            type="text"
+            value={props.subtitle || ''}
+            onChange={(e) => handleUpdate({ subtitle: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Enter subtitle"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Main Title</label>
+          <textarea
+            value={props.title || ''}
+            onChange={(e) => handleUpdate({ title: e.target.value })}
+            rows="2"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Enter main title"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <textarea
+            value={props.description || ''}
+            onChange={(e) => handleUpdate({ description: e.target.value })}
+            rows="3"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Enter description"
+          />
+        </div>
+      </div>
+
+      {/* Button Settings */}
+      <div className="mb-6">
+        <h4 className="font-semibold text-gray-700 mb-3">Buttons</h4>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Primary Button Text</label>
+          <input
+            type="text"
+            value={props.primaryButtonText || ''}
+            onChange={(e) => handleUpdate({ primaryButtonText: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Primary button"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Button Text</label>
+          <input
+            type="text"
+            value={props.secondaryButtonText || ''}
+            onChange={(e) => handleUpdate({ secondaryButtonText: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Secondary button"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Button Colors</label>
+          <div className="grid grid-cols-6 gap-2">
+            {predefinedColors.map((color) => (
+              <button
+                key={color}
+                onClick={() => handleUpdate({ 
+                  primaryButtonColor: color,
+                  secondaryButtonColor: color 
+                })}
+                className="w-8 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+                style={{ background: color }}
+                title={`Set color: ${color}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Background Settings */}
+      <div className="mb-6">
+        <h4 className="font-semibold text-gray-700 mb-3">Background</h4>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Background Style</label>
+          <div className="space-y-2">
+            {predefinedGradients.map((gradient, index) => (
+              <button
+                key={index}
+                onClick={() => handleUpdate({ backgroundGradient: gradient.value })}
+                className="w-full p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200 text-left"
+                style={{ background: gradient.value }}
+              >
+                <div className="text-sm font-medium text-gray-800">{gradient.name}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Image Settings */}
+      <div className="mb-4">
+        <h4 className="font-semibold text-gray-700 mb-3">Image</h4>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+          <input
+            type="url"
+            value={props.imageUrl || ''}
+            onChange={(e) => handleUpdate({ imageUrl: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="https://example.com/image.jpg"
+          />
+        </div>
+      </div>
+    </>
+  );
+};
+// Web Page Interface Formatting Panel Component ends
+
 // Button Formatting Panel Component
 const ButtonFormattingPanel = ({ widgetId }) => {
   const { widgets, updateWidget } = useCMSStore();

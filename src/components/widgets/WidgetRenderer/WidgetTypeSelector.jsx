@@ -1,13 +1,14 @@
 import React, { useRef, useEffect } from "react";
 
 export const availableWidgetTypes = [
+    { value: "webPageInterface", label: "Web Page Interface" },
     { value: "heading", label: "Heading" },
     { value: "richText", label: "Text" },
     { value: "image", label: "Image" },
     { value: "button", label: "Button" },
     { value: "spacer", label: "Spacer" },
     { value: "divider", label: "Divider" },
-  ];  
+];  
 
 const WidgetTypeSelector = ({ onSelect, currentType, onClose }) => {
   const dropdownRef = useRef(null);

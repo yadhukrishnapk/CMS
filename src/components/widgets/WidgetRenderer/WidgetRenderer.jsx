@@ -5,9 +5,21 @@ import ButtonWidget from "../ButtonWidget";
 import SpacerWidget from "../SpacerWidget";
 import DividerWidget from "../DividerWidget";
 import ImageWidget from "../ImageWidget";
+import WebPageInterfaceWidget from "../WebPageInterfaceWidge";
 
 const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect, onUpdate, editorRef }) => {
   switch (widget.type) {
+    case 'webPageInterface':
+      return (
+        <WebPageInterfaceWidget
+          widget={widget}
+          isEditable={isEditable}
+          onContentChange={onContentChange}
+          onSelect={onSelect}
+          onUpdate={onUpdate}
+          editorRef={editorRef}
+        />
+      );
     case 'heading':
       return (
         <HeadingWidget

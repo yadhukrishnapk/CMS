@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 
 export const availableWidgetTypes = [
     { value: "webPageInterface", label: "Web Page Interface" },
+    { value: "webPageInterface2", label: "Web Page Interface 2" },
     { value: "heading", label: "Heading" },
     { value: "richText", label: "Text" },
     { value: "image", label: "Image" },

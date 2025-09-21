@@ -1,45 +1,42 @@
 import React, { useState, useEffect } from "react";
 import useCMSStore from "../store/useCMSStore";
 import { availableWidgetTypes } from "../components/widgets/WidgetRenderer/WidgetTypeSelector";
-import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview, WebPageInterfacePreview } from "../components/widgets/WidgetRenderer/WidgetPreview";
+import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview, WebPageInterfacePreview, WebPageInterfacePreview2 } from "../components/widgets/WidgetRenderer/WidgetPreview";
 
 // Web Page Interface Formatting Panel Component
 const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
   const { widgets, updateWidget } = useCMSStore();
   const widget = widgets[widgetId];
 
-  if (!widget || widget.type !== 'webPageInterface') return null;
+  if (!widget || (widget.type !== 'webPageInterface' && widget.type !== 'webPageInterface2')) return null;
 
   const { props } = widget;
 
-  // Initialize formValues with widget props, ensuring defaults are applied
   const [formValues, setFormValues] = useState({
-    title: props.title || "Add magic to your components",
-    subtitle: props.subtitle || "DESIGN SYSTEM",
-    description: props.description || "With little changes you can turn your React design system into visually editable content blocks your marketing will love.",
-    primaryButtonText: props.primaryButtonText || "Learn more",
-    secondaryButtonText: props.secondaryButtonText || "Sign up",
-    primaryButtonColor: props.primaryButtonColor || "#EC4899",
-    secondaryButtonColor: props.secondaryButtonColor || "#EC4899",
-    backgroundGradient: props.backgroundGradient || "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)",
-    imageUrl: props.imageUrl || "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+    title: props.title || (widget.type === 'webPageInterface' ? "Add magic to your components" : "Design. Build. Market."),
+    subtitle: props.subtitle || (widget.type === 'webPageInterface' ? "DESIGN SYSTEM" : ""),
+    description: props.description || (widget.type === 'webPageInterface' ? "With little changes you can turn your React design system into visually editable content blocks your marketing will love." : "It's in Webandcrafts' DNA to transform your brand into its best digital self. We are driven by a customer centric approach in creating engaging, interactive and immersive experiences that deliver only the best."),
+    primaryButtonText: props.primaryButtonText || (widget.type === 'webPageInterface' ? "Learn more" : "Our expertise"),
+    secondaryButtonText: props.secondaryButtonText || (widget.type === 'webPageInterface' ? "Sign up" : ""),
+    primaryButtonColor: props.primaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
+    secondaryButtonColor: props.secondaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
+    backgroundGradient: props.backgroundGradient || (widget.type === 'webPageInterface' ? "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)" : "linear-gradient(90deg, #000000 0%, #1E3A8A 100%)"),
+    imageUrl: props.imageUrl || (widget.type === 'webPageInterface' ? "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" : "https://via.placeholder.com/600x400?text=Webandcrafts+Visual"),
   });
 
-  // Sync formValues with widget props when they change
   useEffect(() => {
     setFormValues({
-      title: props.title || "Add magic to your components",
-      subtitle: props.subtitle || "DESIGN SYSTEM",
-      description: props.description || "With little changes you can turn your React design system into visually editable content blocks your marketing will love.",
-      primaryButtonText: props.primaryButtonText || "Learn more",
-      secondaryButtonText: props.secondaryButtonText || "Sign up",
-      primaryButtonColor: props.primaryButtonColor || "#EC4899",
-      secondaryButtonColor: props.secondaryButtonColor || "#EC4899",
-      backgroundGradient: props.backgroundGradient || "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)",
-      imageUrl: props.imageUrl || "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+      title: props.title || (widget.type === 'webPageInterface' ? "Add magic to your components" : "Design. Build. Market."),
+      subtitle: props.subtitle || (widget.type === 'webPageInterface' ? "DESIGN SYSTEM" : ""),
+      description: props.description || (widget.type === 'webPageInterface' ? "With little changes you can turn your React design system into visually editable content blocks your marketing will love." : "It's in Webandcrafts' DNA to transform your brand into its best digital self. We are driven by a customer centric approach in creating engaging, interactive and immersive experiences that deliver only the best."),
+      primaryButtonText: props.primaryButtonText || (widget.type === 'webPageInterface' ? "Learn more" : "Our expertise"),
+      secondaryButtonText: props.secondaryButtonText || (widget.type === 'webPageInterface' ? "Sign up" : ""),
+      primaryButtonColor: props.primaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
+      secondaryButtonColor: props.secondaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
+      backgroundGradient: props.backgroundGradient || (widget.type === 'webPageInterface' ? "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)" : "linear-gradient(90deg, #000000 0%, #1E3A8A 100%)"),
+      imageUrl: props.imageUrl || (widget.type === 'webPageInterface' ? "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" : "https://via.placeholder.com/600x400?text=Webandcrafts+Visual"),
     });
   }, [props]);
-
   const handleChange = (updates) => {
     setFormValues((prev) => ({ ...prev, ...updates }));
   };
@@ -329,8 +326,7 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
   } = useCMSStore();
   const selectedWidget = selectedWidgetId ? widgets[selectedWidgetId] : null;
   const isButtonSelected = selectedWidget?.type === 'button';
-  const isWebPageInterfaceSelected = selectedWidget?.type === 'webPageInterface';
-
+  const isWebPageInterfaceSelected = selectedWidget?.type === 'webPageInterface' || selectedWidget?.type === 'webPageInterface2';
   // Save current selection
   const saveSelection = () => {
     const selection = window.getSelection();
@@ -431,11 +427,12 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
     spacer: SpacerPreview,
     divider: DividerPreview,
     webPageInterface: WebPageInterfacePreview,
+    webPageInterface2: WebPageInterfacePreview2,
   };
 
   // Separate widget types into basic and page interface categories
-  const basicWidgets = availableWidgetTypes.filter(type => type.value !== 'webPageInterface');
-  const pageInterfaceWidgets = availableWidgetTypes.filter(type => type.value === 'webPageInterface');
+const basicWidgets = availableWidgetTypes.filter(type => type.value !== 'webPageInterface' && type.value !== 'webPageInterface2');
+const pageInterfaceWidgets = availableWidgetTypes.filter(type => type.value === 'webPageInterface' || type.value === 'webPageInterface2');
 
   if (isButtonSelected) {
     return (

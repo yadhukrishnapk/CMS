@@ -551,6 +551,18 @@ const getDefaultWidgetProps = (type) => {
         backgroundGradient: "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)",
         imageUrl: "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
       };
+      case 'webPageInterface2':
+      return {
+        title: "Design. Build. Market.",
+        subtitle: "",
+        description: "It's in Webandcrafts' DNA to transform your brand into its best digital self. We are driven by a customer centric approach in creating engaging, interactive and immersive experiences that deliver only the best.",
+        primaryButtonText: "Our expertise",
+        secondaryButtonText: "",
+        primaryButtonColor: "#00A3E0",
+        secondaryButtonColor: "#00A3E0",
+        backgroundGradient: "linear-gradient(90deg, #000000 0%, #1E3A8A 100%)",
+        imageUrl: "https://via.placeholder.com/600x400?text=Webandcrafts+Visual"
+      };
     default:
       return {};
   }

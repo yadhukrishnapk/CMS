@@ -52,3 +52,7 @@ export const DividerPreview = () => (
 export const WebPageInterfacePreview = () => (
   <img src="/webPage1.png" alt="Web Page Interface Preview" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px' }} />
 );
+
+export const WebPageInterfacePreview2 = () => (
+  <img src="/webPage2.png" alt="Web Page Interface Preview" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px' }} />
+);

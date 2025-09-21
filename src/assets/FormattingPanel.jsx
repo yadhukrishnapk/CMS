@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useCMSStore from "../store/useCMSStore";
 import { availableWidgetTypes } from "../components/widgets/WidgetRenderer/WidgetTypeSelector";
-import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview } from "../components/widgets/WidgetRenderer/WidgetPreview";
-
+import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview, WebPageInterfacePreview } from "../components/widgets/WidgetRenderer/WidgetPreview";
 
 // Web Page Interface Formatting Panel Component
 const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
@@ -431,7 +430,12 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
     heading: HeadingPreview,
     spacer: SpacerPreview,
     divider: DividerPreview,
+    webPageInterface: WebPageInterfacePreview,
   };
+
+  // Separate widget types into basic and page interface categories
+  const basicWidgets = availableWidgetTypes.filter(type => type.value !== 'webPageInterface');
+  const pageInterfaceWidgets = availableWidgetTypes.filter(type => type.value === 'webPageInterface');
 
   if (isButtonSelected) {
     return (
@@ -460,28 +464,64 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
           </div>
           Add New Widget
         </h3>
-        <div className="grid grid-cols-2 gap-3 mb-4 max-h-64 overflow-y-auto">
-          {availableWidgetTypes.map((typeConfig) => {
-            const PreviewComponent = widgetPreviewComponents[typeConfig.value];
-            return (
-              <button
-                key={typeConfig.value}
-                onClick={() => {
-                  addWidget(typeConfig.value, insertPosition.pageId, insertPosition.insertIndex);
-                  setShowTemplateSelector(false);
-                }}
-                className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors flex items-center space-x-3 text-left"
-              >
-                <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {PreviewComponent && <PreviewComponent />}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-sm truncate">{typeConfig.label}</p>
-                </div>
-              </button>
-            );
-          })}
+
+        {/* Page Interface Widgets Section */}
+        {pageInterfaceWidgets.length > 0 && (
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-700 mb-3">Page Interfaces</h4>
+            <div className="grid grid-cols-1 gap-3 mb-4">
+              {pageInterfaceWidgets.map((typeConfig) => {
+                const PreviewComponent = widgetPreviewComponents[typeConfig.value];
+                return (
+                  <button
+                    key={typeConfig.value}
+                    onClick={() => {
+                      addWidget(typeConfig.value, insertPosition.pageId, insertPosition.insertIndex);
+                      setShowTemplateSelector(false);
+                    }}
+                    className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors flex items-center space-x-3 text-left"
+                  >
+                    <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {PreviewComponent && <PreviewComponent />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm">{typeConfig.label}</p>
+                      <p className="text-xs text-gray-500">Full-page layout component</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Basic Widgets Section */}
+        <div className="mb-6">
+          <h4 className="font-semibold text-gray-700 mb-3">Basic Widgets</h4>
+          <div className="grid grid-cols-2 gap-3 mb-4 max-h-64 overflow-y-auto">
+            {basicWidgets.map((typeConfig) => {
+              const PreviewComponent = widgetPreviewComponents[typeConfig.value];
+              return (
+                <button
+                  key={typeConfig.value}
+                  onClick={() => {
+                    addWidget(typeConfig.value, insertPosition.pageId, insertPosition.insertIndex);
+                    setShowTemplateSelector(false);
+                  }}
+                  className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors flex items-center space-x-3 text-left"
+                >
+                  <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {PreviewComponent && <PreviewComponent />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{typeConfig.label}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
+
         <button
           onClick={() => setShowTemplateSelector(false)}
           className="w-full px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm"

@@ -48,3 +48,7 @@ export const DividerPreview = () => (
     <rect x="4" y="15" width="24" height="2" rx="1" fill="#2563EB"/>
   </svg>
 );
+
+export const WebPageInterfacePreview = () => (
+  <img src="/webPage1.png" alt="Web Page Interface Preview" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px' }} />
+);

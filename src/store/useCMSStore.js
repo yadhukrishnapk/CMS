@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { createDemoData, hasDemoData, extractDataFromResponse } from '../utils/demoData';
+import { createDemoData, extractDataFromResponse } from '../utils/demoData';
 
 const useCMSStore = create(
   persist(
@@ -21,7 +21,6 @@ const useCMSStore = create(
       // Initialize demo data if no data exists
       initializeDemoData: () => {
         const state = get();
-        // Only initialize if we don't have any pages in the store
         if (!state.pages || state.pages.length === 0) {
           const apiResponse = createDemoData();
           const extractedData = extractDataFromResponse(apiResponse);
@@ -35,7 +34,6 @@ const useCMSStore = create(
             currentPageId: extractedData.pages[0]?.id || null,
           });
           
-          // Force save to localStorage immediately after initialization
           setTimeout(() => {
             const newState = get();
             localStorage.setItem('cms-storage', JSON.stringify({
@@ -46,13 +44,12 @@ const useCMSStore = create(
                 links: newState.links,
                 users: newState.users,
                 settings: newState.settings,
-                currentPageId: newState.currentPageId, // Add this line
+                currentPageId: newState.currentPageId,
               },
               version: 0,
             }));
           }, 100);
         } else {
-          // If pages exist but currentPageId is null, set it to the first page
           if (!state.currentPageId && state.pages.length > 0) {
             set({ currentPageId: state.pages[0].id });
           }
@@ -67,7 +64,6 @@ const useCMSStore = create(
         });
       },
 
-      // Enhanced save function that forces persistence
       forceSave: () => {
         const state = get();
         const dataToSave = {
@@ -77,7 +73,7 @@ const useCMSStore = create(
           links: state.links,
           users: state.users,
           settings: state.settings,
-          currentPageId: state.currentPageId, // Add this line
+          currentPageId: state.currentPageId,
         };
         
         try {
@@ -91,7 +87,6 @@ const useCMSStore = create(
         }
       },
 
-      // Pages actions with enhanced persistence
       createPage: (title = 'New Page') => {
         const id = uuidv4();
         const slug = title.toLowerCase().replace(/\s+/g, '-');
@@ -125,7 +120,6 @@ const useCMSStore = create(
           currentPageId: id,
         }));
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
         return id;
       },
@@ -141,7 +135,6 @@ const useCMSStore = create(
           ),
         }));
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
@@ -149,7 +142,6 @@ const useCMSStore = create(
         set((state) => {
           const page = state.pages.find((p) => p.id === id);
           if (page) {
-            // Remove widgets associated with this page
             const newWidgets = { ...state.widgets };
             page.widgets.forEach((widgetId) => {
               delete newWidgets[widgetId];
@@ -166,14 +158,11 @@ const useCMSStore = create(
           return state;
         });
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
-      // Widgets actions with enhanced persistence
       addWidget: (type, pageId, insertIndex = -1) => {
         const state = get();
-        // Use the current pageId from state if not provided or if provided pageId is null/undefined
         const targetPageId = pageId || state.currentPageId;
         
         if (!targetPageId) {
@@ -218,7 +207,6 @@ const useCMSStore = create(
           };
         });
 
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
         return id;
       },
@@ -235,7 +223,6 @@ const useCMSStore = create(
           },
         }));
         
-        // Force save after state update - with a small delay for better UX during rapid updates
         setTimeout(() => get().forceSave(), 100);
       },
 
@@ -252,7 +239,6 @@ const useCMSStore = create(
           },
         }));
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
@@ -270,7 +256,6 @@ const useCMSStore = create(
           };
         });
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
@@ -299,7 +284,6 @@ const useCMSStore = create(
           selectedWidgetId: newId,
         }));
 
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
         return newId;
       },
@@ -311,11 +295,9 @@ const useCMSStore = create(
           ),
         }));
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
-      // Media actions with enhanced persistence
       addMedia: (file) => {
         const id = uuidv4();
         const url = URL.createObjectURL(file);
@@ -344,7 +326,6 @@ const useCMSStore = create(
           media: [...state.media, newMedia],
         }));
 
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
         return id;
       },
@@ -360,11 +341,9 @@ const useCMSStore = create(
           };
         });
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
-      // Links actions with enhanced persistence
       addLink: (title, url, target = '_self') => {
         const id = uuidv4();
         const newLink = { 
@@ -386,7 +365,6 @@ const useCMSStore = create(
           links: [...state.links, newLink],
         }));
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
         return id;
       },
@@ -402,7 +380,6 @@ const useCMSStore = create(
           ),
         }));
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
@@ -411,23 +388,18 @@ const useCMSStore = create(
           links: state.links.filter((link) => link.id !== id),
         }));
         
-        // Force save after state update
         setTimeout(() => get().forceSave(), 0);
       },
 
-      // UI actions
       selectWidget: (id) => {
         set({ selectedWidgetId: id });
-        // No need to persist UI state
       },
 
       setCurrentPage: (id) => {
         set({ currentPageId: id });
-        // Save current page ID for persistence across refreshes
         setTimeout(() => get().forceSave(), 0);
       },
 
-      // Utility actions
       exportData: () => {
         const state = get();
         return {
@@ -459,11 +431,9 @@ const useCMSStore = create(
           currentPageId: extractedData.pages[0]?.id || null,
         });
         
-        // Force save after import
         setTimeout(() => get().forceSave(), 0);
       },
 
-      // Clear all data (useful for debugging)
       clearAllData: () => {
         set({
           pages: [],
@@ -476,7 +446,6 @@ const useCMSStore = create(
           currentPageId: null,
         });
         
-        // Clear localStorage
         localStorage.removeItem('cms-storage');
       },
     }),
@@ -489,9 +458,8 @@ const useCMSStore = create(
         links: state.links,
         users: state.users,
         settings: state.settings,
-        currentPageId: state.currentPageId, // Add this line to persist currentPageId
+        currentPageId: state.currentPageId,
       }),
-      // Add additional persistence options for better reliability
       serialize: (state) => JSON.stringify(state),
       deserialize: (str) => {
         try {
@@ -501,14 +469,11 @@ const useCMSStore = create(
           return {};
         }
       },
-      // Handle storage events for cross-tab synchronization
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
             console.error('Failed to rehydrate state:', error);
           } else {
-            // console.log('State rehydrated successfully');
-            // Ensure currentPageId is set after rehydration
             if (state && state.pages && state.pages.length > 0 && !state.currentPageId) {
               const store = useCMSStore.getState();
               store.setCurrentPage(state.pages[0].id);
@@ -524,7 +489,7 @@ const getDefaultWidgetProps = (type) => {
   switch (type) {
     case 'richText':
       return { 
-        content: '', // Empty content initially
+        content: '',
         text_align: 'left',
         font_size: 'base',
         line_height: 'relaxed'
@@ -540,7 +505,7 @@ const getDefaultWidgetProps = (type) => {
       };
     case 'button':
       return { 
-        label: 'Button Text', // More neutral placeholder
+        label: 'Button Text',
         link: '', 
         target: '_self',
         variant: 'primary',
@@ -554,7 +519,7 @@ const getDefaultWidgetProps = (type) => {
     case 'heading':
       return { 
         level: 2, 
-        text: '', // Empty initially
+        text: '',
         alignment: 'left',
         color: '#1f2937',
         font_size: '2xl',
@@ -573,6 +538,18 @@ const getDefaultWidgetProps = (type) => {
         color: '#e5e7eb',
         width: '100%',
         opacity: 1
+      };
+    case 'webPageInterface':
+      return {
+        title: "Add magic to your components",
+        subtitle: "DESIGN SYSTEM",
+        description: "With little changes you can turn your React design system into visually editable content blocks your marketing will love.",
+        primaryButtonText: "Learn more",
+        secondaryButtonText: "Sign up",
+        primaryButtonColor: "#EC4899",
+        secondaryButtonColor: "#EC4899",
+        backgroundGradient: "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)",
+        imageUrl: "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
       };
     default:
       return {};

@@ -13,8 +13,40 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
 
   const { props } = widget;
 
-  const handleUpdate = (updates) => {
-    updateWidget(widgetId, { props: { ...props, ...updates } });
+  // Initialize formValues with widget props, ensuring defaults are applied
+  const [formValues, setFormValues] = useState({
+    title: props.title || "Add magic to your components",
+    subtitle: props.subtitle || "DESIGN SYSTEM",
+    description: props.description || "With little changes you can turn your React design system into visually editable content blocks your marketing will love.",
+    primaryButtonText: props.primaryButtonText || "Learn more",
+    secondaryButtonText: props.secondaryButtonText || "Sign up",
+    primaryButtonColor: props.primaryButtonColor || "#EC4899",
+    secondaryButtonColor: props.secondaryButtonColor || "#EC4899",
+    backgroundGradient: props.backgroundGradient || "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)",
+    imageUrl: props.imageUrl || "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+  });
+
+  // Sync formValues with widget props when they change
+  useEffect(() => {
+    setFormValues({
+      title: props.title || "Add magic to your components",
+      subtitle: props.subtitle || "DESIGN SYSTEM",
+      description: props.description || "With little changes you can turn your React design system into visually editable content blocks your marketing will love.",
+      primaryButtonText: props.primaryButtonText || "Learn more",
+      secondaryButtonText: props.secondaryButtonText || "Sign up",
+      primaryButtonColor: props.primaryButtonColor || "#EC4899",
+      secondaryButtonColor: props.secondaryButtonColor || "#EC4899",
+      backgroundGradient: props.backgroundGradient || "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)",
+      imageUrl: props.imageUrl || "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+    });
+  }, [props]);
+
+  const handleChange = (updates) => {
+    setFormValues((prev) => ({ ...prev, ...updates }));
+  };
+
+  const handleApply = () => {
+    updateWidget(widgetId, { props: formValues });
   };
 
   const predefinedColors = ['#EC4899', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
@@ -45,8 +77,8 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
           <input
             type="text"
-            value={props.subtitle || ''}
-            onChange={(e) => handleUpdate({ subtitle: e.target.value })}
+            value={formValues.subtitle}
+            onChange={(e) => handleChange({ subtitle: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter subtitle"
           />
@@ -55,8 +87,8 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Main Title</label>
           <textarea
-            value={props.title || ''}
-            onChange={(e) => handleUpdate({ title: e.target.value })}
+            value={formValues.title}
+            onChange={(e) => handleChange({ title: e.target.value })}
             rows="2"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter main title"
@@ -66,8 +98,8 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
           <textarea
-            value={props.description || ''}
-            onChange={(e) => handleUpdate({ description: e.target.value })}
+            value={formValues.description}
+            onChange={(e) => handleChange({ description: e.target.value })}
             rows="3"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter description"
@@ -83,8 +115,8 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">Primary Button Text</label>
           <input
             type="text"
-            value={props.primaryButtonText || ''}
-            onChange={(e) => handleUpdate({ primaryButtonText: e.target.value })}
+            value={formValues.primaryButtonText}
+            onChange={(e) => handleChange({ primaryButtonText: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Primary button"
           />
@@ -94,8 +126,8 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Button Text</label>
           <input
             type="text"
-            value={props.secondaryButtonText || ''}
-            onChange={(e) => handleUpdate({ secondaryButtonText: e.target.value })}
+            value={formValues.secondaryButtonText}
+            onChange={(e) => handleChange({ secondaryButtonText: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Secondary button"
           />
@@ -107,7 +139,7 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
             {predefinedColors.map((color) => (
               <button
                 key={color}
-                onClick={() => handleUpdate({ 
+                onClick={() => handleChange({ 
                   primaryButtonColor: color,
                   secondaryButtonColor: color 
                 })}
@@ -130,7 +162,7 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
             {predefinedGradients.map((gradient, index) => (
               <button
                 key={index}
-                onClick={() => handleUpdate({ backgroundGradient: gradient.value })}
+                onClick={() => handleChange({ backgroundGradient: gradient.value })}
                 className="w-full p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200 text-left"
                 style={{ background: gradient.value }}
               >
@@ -142,19 +174,27 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
       </div>
 
       {/* Image Settings */}
-      <div className="mb-4">
+      <div className="mb-6">
         <h4 className="font-semibold text-gray-700 mb-3">Image</h4>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
           <input
             type="url"
-            value={props.imageUrl || ''}
-            onChange={(e) => handleUpdate({ imageUrl: e.target.value })}
+            value={formValues.imageUrl}
+            onChange={(e) => handleChange({ imageUrl: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="https://example.com/image.jpg"
           />
         </div>
       </div>
+
+      {/* Apply Button */}
+      <button
+        onClick={handleApply}
+        className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+      >
+        Apply
+      </button>
     </>
   );
 };
@@ -290,6 +330,7 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
   } = useCMSStore();
   const selectedWidget = selectedWidgetId ? widgets[selectedWidgetId] : null;
   const isButtonSelected = selectedWidget?.type === 'button';
+  const isWebPageInterfaceSelected = selectedWidget?.type === 'webPageInterface';
 
   // Save current selection
   const saveSelection = () => {
@@ -396,6 +437,14 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
     return (
       <div className="bg-white shadow-xl rounded-2xl p-6 w-80 border border-gray-100 backdrop-blur-sm bg-white/95">
         <ButtonFormattingPanel widgetId={selectedWidgetId} />
+      </div>
+    );
+  }
+
+  if (isWebPageInterfaceSelected) {
+    return (
+      <div className="bg-white shadow-xl rounded-2xl p-6 w-80 border border-gray-100 backdrop-blur-sm bg-white/95">
+        <WebPageInterfaceFormattingPanel widgetId={selectedWidgetId} />
       </div>
     );
   }

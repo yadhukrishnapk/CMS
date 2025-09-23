@@ -7,6 +7,7 @@ import DividerWidget from "../DividerWidget";
 import ImageWidget from "../ImageWidget";
 import WebPageInterfaceWidget from "../WebPageInterfaceWidge";
 import WebPageInterfaceWidget2 from "../WebPageInterfaceWidget2";
+import WebPageInterfaceWidget3 from "../WebPageInterfaceWidget3";
 
 const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect, onUpdate, editorRef }) => {
   switch (widget.type) {
@@ -32,6 +33,17 @@ const WidgetRenderer = ({ widget, isEditable = false, onContentChange, onSelect,
           editorRef={editorRef}
         />
       );  
+    case 'webPageInterface3':
+      return (
+        <WebPageInterfaceWidget3
+          widget={widget}
+          isEditable={isEditable}
+          onContentChange={onContentChange}
+          onSelect={onSelect}
+          onUpdate={onUpdate}
+          editorRef={editorRef}
+        />
+      );
     case 'heading':
       return (
         <HeadingWidget

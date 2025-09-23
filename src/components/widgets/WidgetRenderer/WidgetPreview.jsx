@@ -56,3 +56,7 @@ export const WebPageInterfacePreview = () => (
 export const WebPageInterfacePreview2 = () => (
   <img src="/webPage2.png" alt="Web Page Interface Preview" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px' }} />
 );
+
+export const WebPageInterfacePreview3 = () => (
+  <img src="/webPage3.png" alt="Web Page Interface Preview" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '8px' }} />
+);

@@ -1,42 +1,88 @@
 import React, { useState, useEffect } from "react";
 import useCMSStore from "../store/useCMSStore";
 import { availableWidgetTypes } from "../components/widgets/WidgetRenderer/WidgetTypeSelector";
-import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview, WebPageInterfacePreview, WebPageInterfacePreview2 } from "../components/widgets/WidgetRenderer/WidgetPreview";
+import { RichTextPreview, ImagePreview, ButtonPreview, HeadingPreview, SpacerPreview, DividerPreview, WebPageInterfacePreview, WebPageInterfacePreview2, WebPageInterfacePreview3 } from "../components/widgets/WidgetRenderer/WidgetPreview";
 
 // Web Page Interface Formatting Panel Component
 const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
   const { widgets, updateWidget } = useCMSStore();
   const widget = widgets[widgetId];
 
-  if (!widget || (widget.type !== 'webPageInterface' && widget.type !== 'webPageInterface2')) return null;
+  if (
+    !widget ||
+    (widget.type !== "webPageInterface" &&
+      widget.type !== "webPageInterface2" &&
+      widget.type !== "webPageInterface3")
+  )
+    return null;
 
   const { props } = widget;
 
+  const defaults = {
+    webPageInterface: {
+      title: "Add magic to your components",
+      subtitle: "DESIGN SYSTEM",
+      description:
+        "With little changes you can turn your React design system into visually editable content blocks your marketing will love.",
+      primaryButtonText: "Learn more",
+      secondaryButtonText: "Sign up",
+      primaryButtonColor: "#EC4899",
+      secondaryButtonColor: "#EC4899",
+      backgroundGradient:
+        "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)",
+      imageUrl:
+        "https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=1470&q=80",
+    },
+    webPageInterface2: {
+      title: "Design. Build. Market.",
+      subtitle: "",
+      description:
+        "It's in Webandcrafts' DNA to transform your brand into its best digital self. We are driven by a customer centric approach in creating engaging, interactive and immersive experiences that deliver only the best.",
+      primaryButtonText: "Our expertise",
+      secondaryButtonText: "",
+      primaryButtonColor: "#00A3E0",
+      secondaryButtonColor: "#00A3E0",
+      backgroundGradient: "linear-gradient(90deg, #000000 0%, #1E3A8A 100%)",
+      imageUrl:
+        "https://via.placeholder.com/600x400?text=Webandcrafts+Visual",
+    },
+    webPageInterface3: {
+      title: "E-Commerce Engine",
+      description: `Our versatile and robust e-commerce platform supports 
+        multi-channel selling, manages product catalogs, and ensures real-time 
+        inventory synchronization. It creates a seamless shopping journey that guides 
+        customers from discovery to purchase, enhancing satisfaction, increasing conversion 
+        rates, and providing consistent support throughout the process.`,
+      imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=800&q=80",
+    },
+  };
+
   const [formValues, setFormValues] = useState({
-    title: props.title || (widget.type === 'webPageInterface' ? "Add magic to your components" : "Design. Build. Market."),
-    subtitle: props.subtitle || (widget.type === 'webPageInterface' ? "DESIGN SYSTEM" : ""),
-    description: props.description || (widget.type === 'webPageInterface' ? "With little changes you can turn your React design system into visually editable content blocks your marketing will love." : "It's in Webandcrafts' DNA to transform your brand into its best digital self. We are driven by a customer centric approach in creating engaging, interactive and immersive experiences that deliver only the best."),
-    primaryButtonText: props.primaryButtonText || (widget.type === 'webPageInterface' ? "Learn more" : "Our expertise"),
-    secondaryButtonText: props.secondaryButtonText || (widget.type === 'webPageInterface' ? "Sign up" : ""),
-    primaryButtonColor: props.primaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
-    secondaryButtonColor: props.secondaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
-    backgroundGradient: props.backgroundGradient || (widget.type === 'webPageInterface' ? "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)" : "linear-gradient(90deg, #000000 0%, #1E3A8A 100%)"),
-    imageUrl: props.imageUrl || (widget.type === 'webPageInterface' ? "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" : "https://via.placeholder.com/600x400?text=Webandcrafts+Visual"),
+    title: props.title || defaults[widget.type].title,
+    subtitle: props.subtitle || defaults[widget.type].subtitle,
+    description: props.description || defaults[widget.type].description,
+    primaryButtonText: props.primaryButtonText || defaults[widget.type].primaryButtonText,
+    secondaryButtonText: props.secondaryButtonText || defaults[widget.type].secondaryButtonText,
+    primaryButtonColor: props.primaryButtonColor || defaults[widget.type].primaryButtonColor,
+    secondaryButtonColor: props.secondaryButtonColor || defaults[widget.type].secondaryButtonColor,
+    backgroundGradient: props.backgroundGradient || defaults[widget.type].backgroundGradient,
+    imageUrl: props.imageUrl || defaults[widget.type].imageUrl,
   });
 
   useEffect(() => {
     setFormValues({
-      title: props.title || (widget.type === 'webPageInterface' ? "Add magic to your components" : "Design. Build. Market."),
-      subtitle: props.subtitle || (widget.type === 'webPageInterface' ? "DESIGN SYSTEM" : ""),
-      description: props.description || (widget.type === 'webPageInterface' ? "With little changes you can turn your React design system into visually editable content blocks your marketing will love." : "It's in Webandcrafts' DNA to transform your brand into its best digital self. We are driven by a customer centric approach in creating engaging, interactive and immersive experiences that deliver only the best."),
-      primaryButtonText: props.primaryButtonText || (widget.type === 'webPageInterface' ? "Learn more" : "Our expertise"),
-      secondaryButtonText: props.secondaryButtonText || (widget.type === 'webPageInterface' ? "Sign up" : ""),
-      primaryButtonColor: props.primaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
-      secondaryButtonColor: props.secondaryButtonColor || (widget.type === 'webPageInterface' ? "#EC4899" : "#00A3E0"),
-      backgroundGradient: props.backgroundGradient || (widget.type === 'webPageInterface' ? "linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F3E8FF 100%)" : "linear-gradient(90deg, #000000 0%, #1E3A8A 100%)"),
-      imageUrl: props.imageUrl || (widget.type === 'webPageInterface' ? "https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" : "https://via.placeholder.com/600x400?text=Webandcrafts+Visual"),
+      title: props.title || defaults[widget.type].title,
+      subtitle: props.subtitle || defaults[widget.type].subtitle,
+      description: props.description || defaults[widget.type].description,
+      primaryButtonText: props.primaryButtonText || defaults[widget.type].primaryButtonText,
+      secondaryButtonText: props.secondaryButtonText || defaults[widget.type].secondaryButtonText,
+      primaryButtonColor: props.primaryButtonColor || defaults[widget.type].primaryButtonColor,
+      secondaryButtonColor: props.secondaryButtonColor || defaults[widget.type].secondaryButtonColor,
+      backgroundGradient: props.backgroundGradient || defaults[widget.type].backgroundGradient,
+      imageUrl: props.imageUrl || defaults[widget.type].imageUrl,
     });
-  }, [props]);
+  }, [props, widget.type]);
+
   const handleChange = (updates) => {
     setFormValues((prev) => ({ ...prev, ...updates }));
   };
@@ -70,17 +116,6 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
         <h4 className="font-semibold text-gray-700 mb-3">Content</h4>
         
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
-          <input
-            type="text"
-            value={formValues.subtitle}
-            onChange={(e) => handleChange({ subtitle: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter subtitle"
-          />
-        </div>
-
-        <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Main Title</label>
           <textarea
             value={formValues.title}
@@ -101,73 +136,91 @@ const WebPageInterfaceFormattingPanel = ({ widgetId }) => {
             placeholder="Enter description"
           />
         </div>
+
+        {/* Conditionally render subtitle only for webPageInterface */}
+        {widget.type === 'webPageInterface' && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+            <input
+              type="text"
+              value={formValues.subtitle}
+              onChange={(e) => handleChange({ subtitle: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter subtitle"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Button Settings */}
-      <div className="mb-6">
-        <h4 className="font-semibold text-gray-700 mb-3">Buttons</h4>
-        
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Primary Button Text</label>
-          <input
-            type="text"
-            value={formValues.primaryButtonText}
-            onChange={(e) => handleChange({ primaryButtonText: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Primary button"
-          />
-        </div>
+      {/* Button Settings - Render only for webPageInterface and webPageInterface2 */}
+      {(widget.type === 'webPageInterface' || widget.type === 'webPageInterface2') && (
+        <div className="mb-6">
+          <h4 className="font-semibold text-gray-700 mb-3">Buttons</h4>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Primary Button Text</label>
+            <input
+              type="text"
+              value={formValues.primaryButtonText}
+              onChange={(e) => handleChange({ primaryButtonText: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Primary button"
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Button Text</label>
-          <input
-            type="text"
-            value={formValues.secondaryButtonText}
-            onChange={(e) => handleChange({ secondaryButtonText: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Secondary button"
-          />
-        </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Button Text</label>
+            <input
+              type="text"
+              value={formValues.secondaryButtonText}
+              onChange={(e) => handleChange({ secondaryButtonText: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Secondary button"
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Button Colors</label>
-          <div className="grid grid-cols-6 gap-2">
-            {predefinedColors.map((color) => (
-              <button
-                key={color}
-                onClick={() => handleChange({ 
-                  primaryButtonColor: color,
-                  secondaryButtonColor: color 
-                })}
-                className="w-8 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-                style={{ background: color }}
-                title={`Set color: ${color}`}
-              />
-            ))}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Button Colors</label>
+            <div className="grid grid-cols-6 gap-2">
+              {predefinedColors.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => handleChange({ 
+                    primaryButtonColor: color,
+                    secondaryButtonColor: color 
+                  })}
+                  className="w-8 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-400 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+                  style={{ background: color }}
+                  title={`Set color: ${color}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Background Settings */}
-      <div className="mb-6">
-        <h4 className="font-semibold text-gray-700 mb-3">Background</h4>
-        
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Background Style</label>
-          <div className="space-y-2">
-            {predefinedGradients.map((gradient, index) => (
-              <button
-                key={index}
-                onClick={() => handleChange({ backgroundGradient: gradient.value })}
-                className="w-full p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200 text-left"
-                style={{ background: gradient.value }}
-              >
-                <div className="text-sm font-medium text-gray-800">{gradient.name}</div>
-              </button>
-            ))}
+      {/* Background Settings - Render only for webPageInterface and webPageInterface2 */}
+      {(widget.type === 'webPageInterface' || widget.type === 'webPageInterface2') && (
+        <div className="mb-6">
+          <h4 className="font-semibold text-gray-700 mb-3">Background</h4>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Background Style</label>
+            <div className="space-y-2">
+              {predefinedGradients.map((gradient, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleChange({ backgroundGradient: gradient.value })}
+                  className="w-full p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200 text-left"
+                  style={{ background: gradient.value }}
+                >
+                  <div className="text-sm font-medium text-gray-800">{gradient.name}</div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Image Settings */}
       <div className="mb-6">
@@ -326,7 +379,7 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
   } = useCMSStore();
   const selectedWidget = selectedWidgetId ? widgets[selectedWidgetId] : null;
   const isButtonSelected = selectedWidget?.type === 'button';
-  const isWebPageInterfaceSelected = selectedWidget?.type === 'webPageInterface' || selectedWidget?.type === 'webPageInterface2';
+  const isWebPageInterfaceSelected = selectedWidget?.type === 'webPageInterface' || selectedWidget?.type === 'webPageInterface2' || selectedWidget?.type === 'webPageInterface3';
   // Save current selection
   const saveSelection = () => {
     const selection = window.getSelection();
@@ -428,11 +481,12 @@ const FormattingPanel = ({ savedRangeRef, editorRef }) => {
     divider: DividerPreview,
     webPageInterface: WebPageInterfacePreview,
     webPageInterface2: WebPageInterfacePreview2,
+    webPageInterface3: WebPageInterfacePreview3,
   };
 
   // Separate widget types into basic and page interface categories
-const basicWidgets = availableWidgetTypes.filter(type => type.value !== 'webPageInterface' && type.value !== 'webPageInterface2');
-const pageInterfaceWidgets = availableWidgetTypes.filter(type => type.value === 'webPageInterface' || type.value === 'webPageInterface2');
+const basicWidgets = availableWidgetTypes.filter(type => type.value !== 'webPageInterface' && type.value !== 'webPageInterface2' && type.value !== 'webPageInterface3');
+const pageInterfaceWidgets = availableWidgetTypes.filter(type => type.value === 'webPageInterface' || type.value === 'webPageInterface2' || type.value === 'webPageInterface3');
 
   if (isButtonSelected) {
     return (

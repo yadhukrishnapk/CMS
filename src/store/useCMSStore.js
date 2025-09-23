@@ -563,6 +563,16 @@ const getDefaultWidgetProps = (type) => {
         backgroundGradient: "linear-gradient(90deg, #000000 0%, #1E3A8A 100%)",
         imageUrl: "https://via.placeholder.com/600x400?text=Webandcrafts+Visual"
       };
+      case 'webPageInterface3': 
+      return {
+        title: "E-Commerce Engine",
+        description: `Our versatile and robust e-commerce platform supports 
+                      multi-channel selling, manages product catalogs, and ensures real-time 
+                      inventory synchronization. It creates a seamless shopping journey that guides 
+                      customers from discovery to purchase, enhancing satisfaction, increasing conversion 
+                      rates, and providing consistent support throughout the process.`,
+        imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=800&q=80"
+      };
     default:
       return {};
   }
